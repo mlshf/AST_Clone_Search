@@ -6,6 +6,7 @@
 #include <strings.h>
 #include <vector>
 #include "git_exec.h"//exec_git_command & exec_git_getsha1
+#include "cluster_init.h"//initializes clusters
 
 using namespace std;
 
@@ -16,6 +17,9 @@ if(argc == 2 && strlen(argv[1]) == 40)
 {
     cout <<"#Git commands emulation..." << endl;
     //string S1("git rev-list --min-parents=0 HEAD");
+
+    vector<string> Vector_of_Paths;
+    list_dir_contents(&Vector_of_Paths);
 
     string S_SHA1(argv[1]);
 
