@@ -1,0 +1,10 @@
+# depslib dependency file v1.0
+1460196528 source:/home/nikita/Course_Realization/main.cpp
+	<iostream>
+	<stdio.h>
+	<stdlib.h>
+	<string>
+	<string.h>
+	<strings.h>
+	<vector>
+
