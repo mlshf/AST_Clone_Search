@@ -40,7 +40,7 @@
 	<strings.h>
 	<vector>
 
-1460485934 /home/nikita/Course_Realization/cluster_init.h
+1460488587 /home/nikita/Course_Realization/cluster_init.h
 	"cluster.h"
 	<boost/filesystem.hpp>
 	<iostream>

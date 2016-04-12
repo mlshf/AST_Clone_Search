@@ -23,6 +23,8 @@ struct recursive_directory_range
     path p_;
 };
 
+
+
 int string_found_C_extension(std::string path)
 {
     bool Found = (path.find(".h", path.size() - 2) != std::string::npos);
@@ -117,6 +119,8 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                     }
                     j++;
                 }
+
+                //AT THIS POINT I HAVE A FRAGMENT OF SIZE 2*FragmentSize + 1 or less THAT CONTAINS WEAKNESS
 
                 previous.clear();
 

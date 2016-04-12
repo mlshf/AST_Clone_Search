@@ -38,6 +38,9 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="cluster.h">
+			<Option compile="1" />
+		</Unit>
 		<Unit filename="cluster_init.h">
 			<Option compile="1" />
 		</Unit>
