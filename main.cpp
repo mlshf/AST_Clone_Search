@@ -7,6 +7,7 @@
 #include <vector>
 #include "git_exec.h"//exec_git_command & exec_git_getsha1
 #include "cluster_init.h"//initializes clusters
+#include "cluster.h"
 
 using namespace std;
 
@@ -15,6 +16,8 @@ int main(int argc, char* argv[])
 //181ed5489bfc64cc0f241f385f1d24f3241cb155
 if(argc == 2 && strlen(argv[1]) == 40)
 {
+    size_t FragmentSize = 3;
+    string WeaknessMarker("#_Weakness_Threat_#");
     cout <<"#Git commands emulation..." << endl;
     //string S1("git rev-list --min-parents=0 HEAD");
 
@@ -23,12 +26,15 @@ if(argc == 2 && strlen(argv[1]) == 40)
 
     string S_SHA1(argv[1]);
 
+    vector<Cluster> Clusters;
+    initialize_clusters(&Vector_of_Paths, &Clusters, S_SHA1, FragmentSize, WeaknessMarker);
+
     vector<string> Vector_SHA1;
     //cout << Vector_SHA1.size() << endl;
 
     exec_git_getsha1(S_SHA1, &Vector_SHA1);
     //cout << Vector_SHA1.size() << endl;
-
+/*
     for(long long i = 0; i < Vector_SHA1.size(); i++)
     {
             //cout << VS[i] << endl;
@@ -39,7 +45,7 @@ if(argc == 2 && strlen(argv[1]) == 40)
     exec_git_command("git checkout master");
 
     //exec_git_command("git diff HEAD~1 HEAD");
-
+*/
     cout <<"#Process is over..." << endl;
 }
 else

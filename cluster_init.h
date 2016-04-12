@@ -1,6 +1,7 @@
 #ifndef CLUSTER_INIT_H_INCLUDED
 #define CLUSTER_INIT_H_INCLUDED
 
+#include "cluster.h"
 #include <boost/filesystem.hpp>
 #include <iostream>
 #include <stdio.h>
@@ -72,5 +73,75 @@ int list_dir_contents(std::vector<std::string>* Paths)
   boost::filesystem::recursive_directory_iterator(),
   std::ostream_iterator<boost::filesystem::directory_entry>(std::cout, "\n"));*/
 return 0;
+}
+
+int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string SHA1, size_t FragmentSize, string WeaknessMarker)
+{
+
+    Commit Cmmt;
+    Cmmt.SHA1 = SHA1;
+
+    for(size_t i = 0; i < Paths->size(); ++i)
+    {
+        FILE* in_file;
+        in_file = fopen((*Paths)[i].c_str(), "r");
+        if(in_file == NULL) return 1;
+
+        std::vector<std::string> previous;//contains strings before commentary in number of FragmentSize
+        //and if needed commentary is found then contains previous.size() + more
+
+        long long line = 1;
+
+        while(!feof(in_file))
+        {
+
+            char str[256];
+            fscanf(in_file, "%[^\n]\n", str);
+
+            std::string S_temp(str);
+
+            if(S_temp[0] == '/' && S_temp[1] == '/' && S_temp.find(WeaknessMarker.c_str()) != std::string::npos)
+            {
+                std::cout << (*Paths)[i] << " $$$ " << S_temp << std::endl;
+                size_t j = 0, k = previous.size();
+                while(j <= k)
+                {
+                    std::cout << j << std::endl;
+                    if(!feof(in_file))
+                    {
+                        char str_t[256];
+                        fscanf(in_file, "%[^\n]\n", str_t);
+
+                        string S_temp_2(str_t);
+                        previous.push_back(S_temp_2);
+                    }
+                    j++;
+                }
+
+                previous.clear();
+
+            }
+            else
+            {
+                if(previous.size() < FragmentSize)
+                {
+                    previous.push_back(S_temp);
+                }
+                else
+                {
+                    previous.erase(previous.begin());
+                    previous.push_back(S_temp);
+                }
+            }
+
+        ++line;
+
+        }
+
+        fclose(in_file);
+
+    }
+
+    return 0;
 }
 #endif // CLUSTER_INIT_H_INCLUDED
