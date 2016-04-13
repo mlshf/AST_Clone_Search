@@ -29,7 +29,7 @@
 	<strings.h>
 	<vector>
 
-1460573639 source:/home/nikita/Course_Realization/cluster_init.h
+1460574637 source:/home/nikita/Course_Realization/cluster_init.h
 	"cluster.h"
 	<boost/filesystem.hpp>
 	<iostream>
@@ -42,7 +42,7 @@
 	<vector>
 	<cctype>
 
-1460573639 /home/nikita/Course_Realization/cluster_init.h
+1460574998 /home/nikita/Course_Realization/cluster_init.h
 	"cluster.h"
 	<boost/filesystem.hpp>
 	<iostream>

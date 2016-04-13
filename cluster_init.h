@@ -138,7 +138,6 @@ void Delete_Extra_Spaces(std::string* Str)
 
 int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string SHA1, size_t FragmentSize, string WeaknessMarker)
 {
-
     Commit Cmmt;
     Cmmt.SHA1 = SHA1;
 
@@ -153,7 +152,7 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
         std::vector<std::string> previous;//contains strings before commentary in number of FragmentSize
         //and if needed commentary is found then contains previous.size() + more
 
-        long long line = 1;
+        long long line = 0;//stores current number of line that was read
 
         while(/*!feof(in_file)*/!in_file.eof())
         {/*
@@ -164,10 +163,14 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
 
             std::string S_temp;
             std::getline(in_file, S_temp);
+            line++;
             Delete_Extra_Spaces(&S_temp);
 
             if(!in_file.eof() && S_temp.size() > 2 && S_temp[0] == '/' && S_temp[1] == '/' && S_temp.find(WeaknessMarker.c_str()) != std::string::npos)
             {
+                Exemplar Exmplr;
+                Exmplr.line = line + 1;
+
                 std::cout << (*Paths)[i] << " $$$ " << S_temp << std::endl;
                 int j = 0, prev_size = previous.size()/*, k = 0*/;//prev_size - size of previous[] before adding string with weakness
                 //k counts lines that cone AFTER line with weakness that are added to the previous[]
@@ -180,6 +183,7 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                         string S_temp_2(str_t);*/
                         std::string S_temp_2;
                         std::getline(in_file, S_temp_2);
+                        line++;
                         Delete_Extra_Spaces(&S_temp_2);
 
                         if(!in_file.eof() && Is_String_Not_Empty(S_temp_2) == 1 && S_temp_2[0] != '/' && S_temp_2[1] != '/')
@@ -192,20 +196,20 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                     //j++;
                 }
 
+
                 if(j > 0)
                     j--;//1because j shows the number of line that would have been read if cycle hadn't stopped
+
                 if(j < prev_size)
                 {
                     previous.erase(previous.begin(), previous.begin() + prev_size - j);
                 }
 
                 //AT THIS POINT I HAVE A FRAGMENT OF SIZE 2*FragmentSize + 1 or less THAT CONTAINS WEAKNESS
-                for(size_t j = 0; j < previous.size(); ++j)
-                    std::cout << previous[j] << " " << previous.size() << std::endl;
+                Exmplr.fragment = previous;
+                for(size_t j = 0; j < Exmplr.fragment.size(); ++j)
+                    std::cout << Exmplr.fragment[j] << " " << Exmplr.line << std::endl;
                 std::cout << std::endl;
-
-                if(previous.size() > FragmentSize)
-                    previous.erase(previous.begin(), previous.begin() + previous.size() - FragmentSize);
 
             }
             else
@@ -221,9 +225,6 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                     previous.push_back(S_temp);
                 }
             }
-
-        ++line;
-
         }
 
         //fclose(in_file);
