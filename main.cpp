@@ -18,7 +18,7 @@ if(argc == 2 && strlen(argv[1]) == 40)
 {
     size_t FragmentSize = 3;
     string WeaknessMarker("#_Weakness_Threat_#");
-    cout <<"#Git commands emulation..." << endl;
+    cout <<"#Git commands emulation..." << endl << endl;
     //string S1("git rev-list --min-parents=0 HEAD");
 
     vector<string> Vector_of_Paths;
