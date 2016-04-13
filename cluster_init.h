@@ -136,6 +136,11 @@ void Delete_Extra_Spaces(std::string* Str)
         Str->erase(Str->begin() + Str->size() - 1);
 }
 
+int Exemplars_Are_Equal(Exemplar* Original, Exemplar* Compared)
+{
+    return 0;
+}
+
 int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string SHA1, size_t FragmentSize, string WeaknessMarker)
 {
     Commit Cmmt;
@@ -210,6 +215,23 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                 for(size_t j = 0; j < Exmplr.fragment.size(); ++j)
                     std::cout << Exmplr.fragment[j] << " " << Exmplr.line << std::endl;
                 std::cout << std::endl;
+
+                if(Cmmt.weaknesses.empty())
+                {
+                    Weakness Wknss;
+                    Wknss.FilePath = (*Paths)[i];
+                    Wknss.FileState = "modified";
+                    std::cout << Wknss.FileState << std::endl;
+                    Wknss.exemplars.push_back(Exmplr);
+                    Cmmt.weaknesses.push_back(Wknss);
+                }
+                else
+                {
+                    for(size_t ix = 0; ix < Cmmt.weaknesses.size(); ++ix)
+                    {
+                        //compare Exmplr and Cmmt.weaknesses[ix].exemplars[0]
+                    }
+                }
 
             }
             else
