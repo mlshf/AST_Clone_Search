@@ -1,3 +1,6 @@
+#ifndef GIT_EXEC_H_INCLUDED
+#define GIT_EXEC_H_INCLUDED
+
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,6 +16,8 @@ int exec_git_command(string S)//It just executes command and prints the result
     FILE* in;
     char buff[512];
 
+    cout << S << endl << endl;
+
     if(!(in = popen(S.c_str(), "r")))
     {
         return 1;
@@ -22,6 +27,9 @@ int exec_git_command(string S)//It just executes command and prints the result
     {
         cout << buff;
     }
+
+    cout << endl;
+
     pclose(in);
 
     return 0;
@@ -43,6 +51,7 @@ int exec_git_getsha1(string S, vector<string>* VS)//It executes command and read
     S_exec += ".*";
     S_exec += '"';
     S_exec += " | awk '{print $1}'";
+    cout << S_exec << endl << endl;
 
     if(!(in = popen(S_exec.c_str(), "r")))
     {
@@ -61,7 +70,11 @@ int exec_git_getsha1(string S, vector<string>* VS)//It executes command and read
 
     }
 
+    cout << endl;
+
     pclose(in);
 
     return 0;
 }
+
+#endif // GIT EXEC_H_INCLUDED
