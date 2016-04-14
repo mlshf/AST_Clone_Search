@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1460196780 source:/home/nikita/Course_Realization/main.cpp
+1460661878 source:/home/nikita/Course_Realization/main.cpp
 	<iostream>
 	<stdio.h>
 	<stdlib.h>
@@ -9,7 +9,7 @@
 	<vector>
 	"git_exec.h"
 
-1460196652 /home/nikita/Course_Realization/git_exec.h
+1460661878 /home/nikita/Course_Realization/git_exec.h
 	<iostream>
 	<stdio.h>
 	<stdlib.h>
