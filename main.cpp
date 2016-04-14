@@ -47,6 +47,19 @@ if(argc == 2 && strlen(argv[1]) == 40)
     //exec_git_command("git diff HEAD~1 HEAD");
 */
     cout <<"#Process is over..." << endl;
+
+    for(size_t i = 0; i < Clusters.size(); ++i)
+    {
+        cout << "Cluster #" << i << endl;
+        for(size_t j = 0; j < Clusters[i].commits[0].files.size(); ++j)
+        {
+            for(size_t k = 0; k < Clusters[i].commits[0].files[j].exemplars.size(); ++k)
+            {
+                cout << Clusters[i].commits[0].files[j].FilePath << " ### " << Clusters[i].commits[0].files[j].exemplars[k].line << endl;
+            }
+        }
+        cout << endl;
+    }
 }
 else
     cout << "Exactly one parameter needed - SHA1 of starting commit!" << endl;

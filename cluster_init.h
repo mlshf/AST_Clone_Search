@@ -12,6 +12,7 @@
 #include <strings.h>
 #include <vector>
 #include <cctype>
+#include <cmath>
 
 using namespace boost::filesystem;
 struct recursive_directory_range
@@ -136,16 +137,34 @@ void Delete_Extra_Spaces(std::string* Str)
         Str->erase(Str->begin() + Str->size() - 1);
 }
 
-int Exemplars_Are_Equal(Exemplar* Original, Exemplar* Compared)
+int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared)
 {
-    return 0;
+    int offset = ((int)Original.fragment.size() - (int)Compared.fragment.size()) / 2;
+    Exemplar small = Compared, big = Original;
+
+    if(offset < 0)
+    {
+        small = Original;
+        big = Compared;
+    }
+
+    int are_equal = 1;
+    offset = abs(offset);
+    size_t i = 0;
+    for(; i < small.fragment.size() && are_equal == 1; ++i)
+    {
+        //std::cout << small.fragment[i] << " " << big.fragment[i + offset] << endl;
+        if( small.fragment[i].compare(big.fragment[offset + i]) != 0 )
+        {
+            are_equal = 0;
+        }
+    }
+
+    return are_equal;
 }
 
 int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string SHA1, size_t FragmentSize, string WeaknessMarker)
 {
-    Commit Cmmt;
-    Cmmt.SHA1 = SHA1;
-
     for(size_t i = 0; i < Paths->size(); ++i)
     {/*
         FILE* in_file;
@@ -216,23 +235,76 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                     std::cout << Exmplr.fragment[j] << " " << Exmplr.line << std::endl;
                 std::cout << std::endl;
 
-                if(Cmmt.weaknesses.empty())
-                {
-                    Weakness Wknss;
-                    Wknss.FilePath = (*Paths)[i];
-                    Wknss.FileState = "modified";
-                    std::cout << Wknss.FileState << std::endl;
-                    Wknss.exemplars.push_back(Exmplr);
-                    Cmmt.weaknesses.push_back(Wknss);
-                }
-                else
-                {
-                    for(size_t ix = 0; ix < Cmmt.weaknesses.size(); ++ix)
-                    {
-                        //compare Exmplr and Cmmt.weaknesses[ix].exemplars[0]
-                    }
-                }
+                if(previous.size() > FragmentSize)
+                    previous.erase(previous.begin(), previous.begin() + previous.size() - FragmentSize);
 
+
+                if(clusters->size() == 0)//if clusters->size() == 0 then we are working with the first weakness in commit
+                {
+                    Cluster Clstr;//new cluster
+                    Commit Cmmt;//new commit
+                    Cmmt.SHA1 = SHA1;
+                    FileDescripton FlDscrptn;//new file description
+                    FlDscrptn.FilePath = (*Paths)[i];//FilePath is current (*Paths)[i]
+                    FlDscrptn.FileState = "start";//meaning that file is in the first commit
+                    FlDscrptn.exemplars.push_back(Exmplr);//FileDescription has no exemplars of weakness
+                    Cmmt.files.push_back(FlDscrptn);//commit has no FileDescriptions
+                    Clstr.commits.push_back(Cmmt);//cluster has no commits
+                    clusters->push_back(Clstr);//clusters has no elements
+                }
+                else//there are clusters already
+                {
+                    size_t ix = 0;
+                    int Found_Equal = 0;
+                    while( ix < clusters->size() && Found_Equal != 1 )
+                    {
+                        Found_Equal = Exemplars_Are_Equal( (*clusters)[ix].commits[0].files[0].exemplars[0], Exmplr );
+                        if(Found_Equal != 1) ++ix;//so that at the end we will have either ix = clusters.size() => no equal exemplars were found
+                        //or ix value will be index of cluster, that contains equal exemplar
+                    }
+
+                    if(Found_Equal == 1)//we have found equal exemplar
+                    {
+                        //now we have to check, if current Path is among FilePaths in FileDescriptions
+                        size_t jx = 0;
+                        int Found_Path = 0;
+                        while( jx < (*clusters)[ix].commits[0].files.size() && Found_Path != 1)//stop if searched through all files[] or if found Path
+                        {
+                            if( (*clusters)[ix].commits[0].files[jx].FilePath.compare((*Paths)[i]) == 0)//if there is a FilePath that is equal to current Path
+                                Found_Path = 1;
+
+                            if(Found_Path != 1) jx++;//so that at the end jx will be either size() => no equal paths were found
+                            //or it'll be index of file, that contains another weakness of current type
+                        }
+
+                        if(Found_Path == 1)
+                        {
+                            (*clusters)[ix].commits[0].files[jx].exemplars.push_back(Exmplr);//just adding exemplar to the file that already has similar weaknesses
+                        }
+                        else//no files that already contain weakness of current type were found
+                        {
+                            FileDescripton FlDscrptn;
+                            FlDscrptn.FilePath = (*Paths)[i];
+                            FlDscrptn.FileState = "start";
+                            FlDscrptn.exemplars.push_back(Exmplr);
+                            (*clusters)[ix].commits[0].files.push_back(FlDscrptn);
+                        }
+                    }
+                    else//haven't found any existing cluster of the same type of weakness
+                    {
+                        Cluster Clstr;//new cluster
+                        Commit Cmmt;//new commit
+                        Cmmt.SHA1 = SHA1;
+                        FileDescripton FlDscrptn;//new file description
+                        FlDscrptn.FilePath = (*Paths)[i];//FilePath is current (*Paths)[i]
+                        FlDscrptn.FileState = "start";//meaning that file is in the first commit
+                        FlDscrptn.exemplars.push_back(Exmplr);//FileDescription has no exemplars of weakness
+                        Cmmt.files.push_back(FlDscrptn);//commit has no FileDescriptions
+                        Clstr.commits.push_back(Cmmt);//cluster has no commits
+                        clusters->push_back(Clstr);//clusters has no element of current weakness type
+                    }
+
+                }
             }
             else
             if(!in_file.eof() && Is_String_Not_Empty(S_temp) == 1)
@@ -251,8 +323,6 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
 
         //fclose(in_file);
         in_file.close();
-
-        previous.clear();
 
     }
 

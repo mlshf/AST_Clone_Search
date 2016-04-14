@@ -18,7 +18,7 @@ struct Exemplar {
 };
 
 //a set of weaknesses in one file described by FilePath
-struct Weakness {
+struct FileDescripton {
     string FilePath;//path to described file
     string FileState;//deleted, changed, unchanged, ... ?
     vector<Exemplar> exemplars;//vector of exemplars of weaknesses in this one file
@@ -27,7 +27,7 @@ struct Weakness {
 //a set of files that contain weaknesses in one commit described by its SHA1
 struct Commit {
     string SHA1;//current commit's SHA1
-    vector<Weakness> weaknesses;//vector of files' descriptions
+    vector<FileDescripton> files;//vector of files' descriptions
 };
 
 //a set of structures representing changes per one commit for a specific type of weaknesses
