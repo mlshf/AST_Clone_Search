@@ -47,6 +47,9 @@
 		<Unit filename="git_exec.h">
 			<Option compile="1" />
 		</Unit>
+		<Unit filename="history_analysis.h">
+			<Option compile="1" />
+		</Unit>
 		<Unit filename="main.cpp" />
 		<Extensions>
 			<code_completion />

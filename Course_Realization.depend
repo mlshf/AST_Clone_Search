@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1460658046 source:/home/nikita/Course_Realization/main.cpp
+1460813400 source:/home/nikita/Course_Realization/main.cpp
 	<iostream>
 	<stdio.h>
 	<stdlib.h>
@@ -10,8 +10,9 @@
 	"git_exec.h"
 	"cluster_init.h"
 	"cluster.h"
+	"history_analysis.h"
 
-1460560460 /home/nikita/Course_Realization/git_exec.h
+1460813400 /home/nikita/Course_Realization/git_exec.h
 	<iostream>
 	<stdio.h>
 	<stdlib.h>
@@ -20,7 +21,7 @@
 	<strings.h>
 	<vector>
 
-1460560460 source:/home/nikita/Course_Realization/git_exec.h
+1460813400 source:/home/nikita/Course_Realization/git_exec.h
 	<iostream>
 	<stdio.h>
 	<stdlib.h>
@@ -29,7 +30,7 @@
 	<strings.h>
 	<vector>
 
-1460657597 source:/home/nikita/Course_Realization/cluster_init.h
+1460729069 source:/home/nikita/Course_Realization/cluster_init.h
 	"cluster.h"
 	<boost/filesystem.hpp>
 	<iostream>
@@ -43,7 +44,7 @@
 	<cctype>
 	<cmath>
 
-1460657597 /home/nikita/Course_Realization/cluster_init.h
+1460729069 /home/nikita/Course_Realization/cluster_init.h
 	"cluster.h"
 	<boost/filesystem.hpp>
 	<iostream>
@@ -57,7 +58,7 @@
 	<cctype>
 	<cmath>
 
-1460643024 source:/home/nikita/Course_Realization/cluster.h
+1460662061 source:/home/nikita/Course_Realization/cluster.h
 	<iostream>
 	<stdio.h>
 	<stdlib.h>
@@ -66,7 +67,7 @@
 	<strings.h>
 	<vector>
 
-1460643024 /home/nikita/Course_Realization/cluster.h
+1460662061 /home/nikita/Course_Realization/cluster.h
 	<iostream>
 	<stdio.h>
 	<stdlib.h>
@@ -74,4 +75,36 @@
 	<string.h>
 	<strings.h>
 	<vector>
+
+1460813475 source:/home/nikita/Course_Realization/history_analysis.h
+	"cluster.h"
+	"cluster_init.h"
+	"git_exec.h"
+	<boost/filesystem.hpp>
+	<iostream>
+	<fstream>
+	<stdio.h>
+	<stdlib.h>
+	<string>
+	<string.h>
+	<strings.h>
+	<vector>
+	<cctype>
+	<cmath>
+
+1460813475 /home/nikita/Course_Realization/history_analysis.h
+	"cluster.h"
+	"cluster_init.h"
+	"git_exec.h"
+	<boost/filesystem.hpp>
+	<iostream>
+	<fstream>
+	<stdio.h>
+	<stdlib.h>
+	<string>
+	<string.h>
+	<strings.h>
+	<vector>
+	<cctype>
+	<cmath>
 

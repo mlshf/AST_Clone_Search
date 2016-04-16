@@ -35,6 +35,18 @@ int exec_git_command(string S)//It just executes command and prints the result
     return 0;
 }
 
+int Is_Char_String_Not_Empty(char S_temp[])//1 - does contain non-space characters, 0 otherwise
+{
+    int String_Not_Empty = 0;
+    for(size_t t = 0; t < strlen(S_temp) && String_Not_Empty != 1; ++t)
+    {
+        char c = S_temp[t];
+        if(isspace(c) == 0 && c != EOF && (isalpha(c) || isdigit(c)))
+            String_Not_Empty = 1;
+    }
+    return String_Not_Empty;
+}
+
 int exec_git_getsha1(string S, vector<string>* VS)//It executes command and reads the result. Then prints it.
 //Accepts string S, that contains only SHA1 of
 {
@@ -61,13 +73,19 @@ int exec_git_getsha1(string S, vector<string>* VS)//It executes command and read
     while(!feof(in))
     {
 
-        char str[64];
-        fscanf(in, "%[^\n]\n", str);
+        char str[40];
+        //fscanf(in, "%[^\n]\n", str);
+        if(fgets(str, 41, in) != NULL)
+        {
 
-        string S_temp(str);
-        VS->push_back(S_temp);
-        cout << S_temp << endl;
+            string S_temp(str);
+            if(Is_Char_String_Not_Empty(str) == 1 && S_temp.size() == 40 && !feof(in))
+            {
+                VS->push_back(S_temp);
+                cout << S_temp << endl;
+            }
 
+        }
     }
 
     cout << endl;

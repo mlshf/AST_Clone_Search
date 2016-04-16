@@ -8,6 +8,7 @@
 #include "git_exec.h"//exec_git_command & exec_git_getsha1
 #include "cluster_init.h"//initializes clusters
 #include "cluster.h"
+#include "history_analysis.h"
 
 using namespace std;
 
@@ -28,12 +29,28 @@ if(argc == 2 && strlen(argv[1]) == 40)
 
     vector<Cluster> Clusters;
     initialize_clusters(&Vector_of_Paths, &Clusters, S_SHA1, FragmentSize, WeaknessMarker);
-
+/*
     vector<string> Vector_SHA1;
-    //cout << Vector_SHA1.size() << endl;
+    cout << Vector_SHA1.size() << endl;
 
     exec_git_getsha1(S_SHA1, &Vector_SHA1);
-    //cout << Vector_SHA1.size() << endl;
+    cout << Vector_SHA1.size() << endl;
+*/
+    vector<Commit_Level> Commit_Levels;
+    Commit_Level Level0;
+    Level0.level = 0;
+    Level0.SHA1_of_commits.push_back(S_SHA1);
+    Commit_Levels.push_back(Level0);
+    Analyze_History(&Commit_Levels);
+
+    for(size_t i = 0; i < Commit_Levels.size(); i++)
+    {
+        cout << "Commit level: " << Commit_Levels[i].level << " : ";
+        for(size_t j = 0; j < Commit_Levels[i].SHA1_of_commits.size(); ++j)
+            cout << Commit_Levels[i].SHA1_of_commits[j] << "   ";
+        cout << endl;
+    }
+
 /*
     for(long long i = 0; i < Vector_SHA1.size(); i++)
     {
