@@ -35,10 +35,17 @@ int Are_There_Equal_Strings(vector<string>* VS, string S)
     return Found_Equal;
 }
 
-void Analyze_History(vector<Commit_Level>* Commit_Levels)
+//creates vector of levels of commits
+//level 0 - starting commit
+//level i+1 - level of commits-descendants of commits from level i
+int Fill_Commit_Levels(vector<Commit_Level>* Commit_Levels)
 {
-    size_t i = 1;
-    int unchecked_commits = (int)(*Commit_Levels)[i - 1].SHA1_of_commits.size();
+    size_t i = 1;//number of current level; 1 at the beginning of the process
+    int unchecked_commits = (int)(*Commit_Levels)[i - 1].SHA1_of_commits.size();//as we work we have two sets of commits
+    //first one is that we use to form the second one. unchecked commits is its size at the beginning of a step. it decreases as we find descendants of one of
+    //this set's commits and add them to the second set
+    //second one is the one that is being formed using the first one. it contains all the descendant-commits of all the commits from the first set
+    //on the i+1 step of the algorithm the second set of i step becomes the first set for i+1 step
 
     while(unchecked_commits > 0)
     {
@@ -49,13 +56,17 @@ void Analyze_History(vector<Commit_Level>* Commit_Levels)
         for(size_t j = 0; j < (*Commit_Levels)[i - 1].SHA1_of_commits.size(); ++j)
         {
             vector<string> Vector_of_SHA1;
-            exec_git_getsha1((*Commit_Levels)[i - 1].SHA1_of_commits[j], &Vector_of_SHA1);
+            if(exec_git_getsha1((*Commit_Levels)[i - 1].SHA1_of_commits[j], &Vector_of_SHA1) == 1)
+            {
+                cout << "COULD NOT FILL COMMIT LEVELS..." << endl;
+                return 1;
+            }
 
             for(size_t t = 0; t < Vector_of_SHA1.size(); ++t)
-                if(Are_There_Equal_Strings(&(Level_i.SHA1_of_commits), Vector_of_SHA1[t]) != 1)
+                if(Are_There_Equal_Strings(&(Level_i.SHA1_of_commits), Vector_of_SHA1[t]) != 1)//SHA1 is added to level_i's vector of commits only if it is not already there
                     Level_i.SHA1_of_commits.push_back(Vector_of_SHA1[t]);
 
-            --unchecked_commits;
+            --unchecked_commits;//as we found the descendants for one of the commits from the parent commit set we decrease the number of unprocessed parent commits
         }
 
         Commit_Levels->push_back(Level_i);
@@ -65,7 +76,7 @@ void Analyze_History(vector<Commit_Level>* Commit_Levels)
 
     }
 
-    return;
+    return 0;
 }
 
 #endif // HISTORY_ANALYSIS_H_INCLUDED

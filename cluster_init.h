@@ -26,8 +26,6 @@ struct recursive_directory_range
     path p_;
 };
 
-
-
 int string_found_C_extension(std::string path)
 {
     bool Found = (path.find(".h", path.size() - 2) != std::string::npos);
@@ -64,6 +62,7 @@ int string_found_C_extension(std::string path)
 
 int list_dir_contents(std::vector<std::string>* Paths)
 {
+    std::cout << "LISTING FILES WITH ACCEPTABLE EXTENSIONS : " << std::endl;
     for (directory_entry it : recursive_directory_range("."))
     {
         std::string path = it.path().string();
@@ -95,8 +94,11 @@ int Is_String_Not_Empty(std::string S_temp)//1 - does contain non-space characte
 
 void Delete_Extra_Spaces(std::string* Str)
 {
-    int beginning_flag = 1, whitespace_row = 0;
-    size_t i = 0;
+    int beginning_flag = 1, whitespace_row = 0;//beginning_flag means that we are at the beginning of the string
+    //it is needed for erasing all the whitespaces in the beginning, before the first !isspace() symbol
+    //whitespace_row is a flag, that contains information whether we encountered a space and all the next space symbols may be erased
+    //until we find !isspace() symbol
+    size_t i = 0;//position in the string. it is increased by 1 only if Str[i] wasn't erased
     while(i < Str->size())
     {
         if(beginning_flag == 1)
@@ -104,7 +106,7 @@ void Delete_Extra_Spaces(std::string* Str)
             if((*Str)[i] == ' ')
             {
                 Str->erase(Str->begin());
-                i = 0;
+                i = 0;//as we erase all the spaces at the beginning of the string we remain at position Str[0]
             }
             else
             {
@@ -122,19 +124,22 @@ void Delete_Extra_Spaces(std::string* Str)
                 }
                 else//it's first whitespace in a row
                 {
-                    whitespace_row = 1;
+                    whitespace_row = 1;//if whitespace row was not == 1, then we only make its value equal 1, as we don't delete the first space in the row
                     i++;
                 }
             }
             else
             {
-                whitespace_row = 0;
+                whitespace_row = 0;//if encountered symbol isn't space symbol, whitespace_row is set 0
                 i++;
             }
         }
     }
-    if((*Str)[Str->size() - 1] == ' ')
+
+    if((*Str)[Str->size() - 1] == ' ')//КОСТЫЛЬ, чтобы удалить последний пробел
         Str->erase(Str->begin() + Str->size() - 1);
+
+    return;
 }
 
 int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared)
@@ -171,7 +176,11 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
         in_file = fopen((*Paths)[i].c_str(), "r");
         if(in_file == NULL) return 1;*/
         ifstream in_file((*Paths)[i].c_str(), ios_base::in);
-        if(!in_file.is_open()) return 1;
+        if(!in_file.is_open())
+        {
+            std::cout << "FILE : " << (*Paths)[i] << " COULD NOT BE OPENED. ABORTING..." << std::endl;
+            return 1;
+        }
 
         std::vector<std::string> previous;//contains strings before commentary in number of FragmentSize
         //and if needed commentary is found then contains previous.size() + more
@@ -195,7 +204,6 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                 Exemplar Exmplr;
                 Exmplr.line = line + 1;
 
-                std::cout << (*Paths)[i] << " $$$ " << S_temp << std::endl;
                 int j = 0, prev_size = previous.size()/*, k = 0*/;//prev_size - size of previous[] before adding string with weakness
                 //k counts lines that cone AFTER line with weakness that are added to the previous[]
                 while(j <= prev_size && !in_file.eof())
@@ -231,9 +239,17 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
 
                 //AT THIS POINT I HAVE A FRAGMENT OF SIZE 2*FragmentSize + 1 or less THAT CONTAINS WEAKNESS
                 Exmplr.fragment = previous;
+
+                if(Exmplr.fragment.size() > 0)
+                    std::cout << "DIRECTORY : "<< (*Paths)[i] << " ; MARKER : " << S_temp << " ; FRAGMENT : " << std::endl;
+
                 for(size_t j = 0; j < Exmplr.fragment.size(); ++j)
+                {
                     std::cout << Exmplr.fragment[j] << " " << Exmplr.line << std::endl;
-                std::cout << std::endl;
+                    if(j == Exmplr.fragment.size() - 1)
+                        std::cout << std::endl;
+                }
+
 
                 if(previous.size() > FragmentSize)
                     previous.erase(previous.begin(), previous.begin() + previous.size() - FragmentSize);

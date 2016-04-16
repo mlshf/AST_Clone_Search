@@ -19,16 +19,10 @@ if(argc == 2 && strlen(argv[1]) == 40)
 {
     size_t FragmentSize = 3;
     string WeaknessMarker("#_Weakness_Threat_#");
-    cout <<"#Git commands emulation..." << endl << endl;
+    cout <<"#GIT COMMANDS EMULATION..." << endl << endl;
     //string S1("git rev-list --min-parents=0 HEAD");
 
-    vector<string> Vector_of_Paths;
-    list_dir_contents(&Vector_of_Paths);
-
     string S_SHA1(argv[1]);
-
-    vector<Cluster> Clusters;
-    initialize_clusters(&Vector_of_Paths, &Clusters, S_SHA1, FragmentSize, WeaknessMarker);
 /*
     vector<string> Vector_SHA1;
     cout << Vector_SHA1.size() << endl;
@@ -41,30 +35,31 @@ if(argc == 2 && strlen(argv[1]) == 40)
     Level0.level = 0;
     Level0.SHA1_of_commits.push_back(S_SHA1);
     Commit_Levels.push_back(Level0);
-    Analyze_History(&Commit_Levels);
+    if(Fill_Commit_Levels(&Commit_Levels) == 1)
+    {
+        return 1;
+    }
 
     for(size_t i = 0; i < Commit_Levels.size(); i++)
     {
-        cout << "Commit level: " << Commit_Levels[i].level << " : ";
+        if( i < 10 ) cout << "COMMIT LEVEL :  " << Commit_Levels[i].level << " : ";
+        else cout << "COMMIT LEVEL : " << Commit_Levels[i].level << " : ";
         for(size_t j = 0; j < Commit_Levels[i].SHA1_of_commits.size(); ++j)
             cout << Commit_Levels[i].SHA1_of_commits[j] << "   ";
         cout << endl;
     }
+    cout << endl;
 
-/*
-    for(long long i = 0; i < Vector_SHA1.size(); i++)
+    vector<string> Vector_of_Paths;
+    list_dir_contents(&Vector_of_Paths);
+
+    vector<Cluster> Clusters;
+    if(initialize_clusters(&Vector_of_Paths, &Clusters, S_SHA1, FragmentSize, WeaknessMarker) == 1)
     {
-            //cout << VS[i] << endl;
-            string S_checkout("git checkout ");
-            S_checkout += Vector_SHA1[i];
-            exec_git_command(S_checkout);
+        return 1;
     }
-    exec_git_command("git checkout master");
 
-    //exec_git_command("git diff HEAD~1 HEAD");
-*/
-    cout <<"#Process is over..." << endl;
-
+    cout << "CLUSTERS ENUMERATION: " << endl;
     for(size_t i = 0; i < Clusters.size(); ++i)
     {
         cout << "Cluster #" << i << endl;
@@ -72,14 +67,17 @@ if(argc == 2 && strlen(argv[1]) == 40)
         {
             for(size_t k = 0; k < Clusters[i].commits[0].files[j].exemplars.size(); ++k)
             {
-                cout << Clusters[i].commits[0].files[j].FilePath << " ### " << Clusters[i].commits[0].files[j].exemplars[k].line << endl;
+                cout << "LINE : " << Clusters[i].commits[0].files[j].exemplars[k].line << " ; IN FILE : " << Clusters[i].commits[0].files[j].FilePath << endl;
             }
         }
         cout << endl;
     }
+
+    cout <<"#PROCESS IS OVER..." << endl;
+
 }
 else
-    cout << "Exactly one parameter needed - SHA1 of starting commit!" << endl;
+    cout << "EXACTLY ONE PARAMETER IS NEEDED - SHA1 OF STARTING COMMIT!" << endl;
 
     return 0;
 }
