@@ -37,6 +37,7 @@ if(argc == 2 && strlen(argv[1]) == 40)
     Commit_Levels.push_back(Level0);
     if(Fill_Commit_Levels(&Commit_Levels) == 1)
     {
+        exec_git_command("git checkout master");
         return 1;
     }
 
@@ -50,27 +51,51 @@ if(argc == 2 && strlen(argv[1]) == 40)
     }
     cout << endl;
 
+    string git_command("git checkout ");//so that we use starting commit to initialize clusters
+    git_command += S_SHA1;
+    if(exec_git_command(git_command) == 1)
+        return 1;
+
     vector<string> Vector_of_Paths;
     list_dir_contents(&Vector_of_Paths);
 
     vector<Cluster> Clusters;
     if(initialize_clusters(&Vector_of_Paths, &Clusters, S_SHA1, FragmentSize, WeaknessMarker) == 1)
     {
+        exec_git_command("git checkout master");
         return 1;
     }
 
-    cout << "CLUSTERS ENUMERATION: " << endl;
+    Vector_of_Paths.clear();//we no longer need the resources
+
+    if(Analyze_History(&Commit_Levels, &Clusters, FragmentSize) == 1)
+    {
+        exec_git_command("git checkout master");
+        return 1;
+    }
+
+    cout << "CLUSTERS ENUMERATION: " << endl << endl;
     for(size_t i = 0; i < Clusters.size(); ++i)
     {
-        cout << "Cluster #" << i << endl;
-        for(size_t j = 0; j < Clusters[i].commits[0].files.size(); ++j)
+        cout << "CLUSTER #" << i << " :" << endl << "-----------------------------------------------------------" << endl;
+        for(size_t j = 0; j < Clusters[i].commits.size(); ++j)
         {
-            for(size_t k = 0; k < Clusters[i].commits[0].files[j].exemplars.size(); ++k)
+            cout << "COMMIT #" << j << " ; " << "SHA1 : " << Clusters[i].commits[j].SHA1 << " :" << endl;
+            for(size_t k = 0; k < Clusters[i].commits[j].files.size(); ++k)
             {
-                cout << "LINE : " << Clusters[i].commits[0].files[j].exemplars[k].line << " ; IN FILE : " << Clusters[i].commits[0].files[j].FilePath << endl;
+                cout << "FILE : " << Clusters[i].commits[j].files[k].FilePath << " ; STATE = " << Clusters[i].commits[j].files[k].FileState;
+                cout <<" ; NUMBER OF EXEMPLARS = " << Clusters[i].commits[j].files[k].exemplars.size() << " ; LINES & SIZES : ";
+                for(size_t n = 0; n < Clusters[i].commits[j].files[k].exemplars.size(); ++n)
+                {
+                    cout << Clusters[i].commits[j].files[k].exemplars[n].line << " " << Clusters[i].commits[j].files[k].exemplars[n].fragment.size();
+                    if(n != Clusters[i].commits[j].files[k].exemplars.size() - 1) cout << " , ";
+                }
+                cout << endl;
+
             }
+            cout << endl;
         }
-        cout << endl;
+        cout << "=============================================================================" << endl;
     }
 
     cout <<"#PROCESS IS OVER..." << endl;
@@ -78,6 +103,9 @@ if(argc == 2 && strlen(argv[1]) == 40)
 }
 else
     cout << "EXACTLY ONE PARAMETER IS NEEDED - SHA1 OF STARTING COMMIT!" << endl;
+
+    cout << endl;
+    exec_git_command("git checkout master");
 
     return 0;
 }

@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1460834892 source:/home/nikita/Course_Realization/main.cpp
+1461413563 source:/home/nikita/Course_Realization/main.cpp
 	<iostream>
 	<stdio.h>
 	<stdlib.h>
@@ -30,7 +30,7 @@
 	<strings.h>
 	<vector>
 
-1460834990 source:/home/nikita/Course_Realization/cluster_init.h
+1461403842 source:/home/nikita/Course_Realization/cluster_init.h
 	"cluster.h"
 	<boost/filesystem.hpp>
 	<iostream>
@@ -43,8 +43,9 @@
 	<vector>
 	<cctype>
 	<cmath>
+	"git_exec.h"
 
-1460834990 /home/nikita/Course_Realization/cluster_init.h
+1461403842 /home/nikita/Course_Realization/cluster_init.h
 	"cluster.h"
 	<boost/filesystem.hpp>
 	<iostream>
@@ -57,6 +58,7 @@
 	<vector>
 	<cctype>
 	<cmath>
+	"git_exec.h"
 
 1460662061 source:/home/nikita/Course_Realization/cluster.h
 	<iostream>
@@ -76,7 +78,7 @@
 	<strings.h>
 	<vector>
 
-1460834136 source:/home/nikita/Course_Realization/history_analysis.h
+1461413642 source:/home/nikita/Course_Realization/history_analysis.h
 	"cluster.h"
 	"cluster_init.h"
 	"git_exec.h"
@@ -92,7 +94,7 @@
 	<cctype>
 	<cmath>
 
-1460834136 /home/nikita/Course_Realization/history_analysis.h
+1461413642 /home/nikita/Course_Realization/history_analysis.h
 	"cluster.h"
 	"cluster_init.h"
 	"git_exec.h"

@@ -13,6 +13,7 @@
 #include <vector>
 #include <cctype>
 #include <cmath>
+#include "git_exec.h"
 
 using namespace boost::filesystem;
 struct recursive_directory_range
@@ -29,17 +30,17 @@ struct recursive_directory_range
 int string_found_C_extension(std::string path)
 {
     bool Found = (path.find(".h", path.size() - 2) != std::string::npos);
-    Found = Found || (path.find(".H", path.size() - 2) != std::string::npos);
-    Found = Found || (path.find(".hh", path.size() - 3) != std::string::npos);
+    /*Found = Found || (path.find(".H", path.size() - 2) != std::string::npos);
+    Found = Found || (path.find(".hh", path.size() - 3) != std::string::npos);*/
     Found = Found || (path.find(".hpp", path.size() - 4) != std::string::npos);
-    Found = Found || (path.find(".h++", path.size() - 4) != std::string::npos);
-    Found = Found || (path.find(".hxx", path.size() - 4) != std::string::npos);
+   /* Found = Found || (path.find(".h++", path.size() - 4) != std::string::npos);
+    Found = Found || (path.find(".hxx", path.size() - 4) != std::string::npos);*/
 
     Found = Found || (path.find(".c", path.size() - 2) != std::string::npos);
-    Found = Found || (path.find(".C", path.size() - 2) != std::string::npos);
-    Found = Found || (path.find(".cc", path.size() - 3) != std::string::npos);
+   /* Found = Found || (path.find(".C", path.size() - 2) != std::string::npos);
+    Found = Found || (path.find(".cc", path.size() - 3) != std::string::npos);*/
     Found = Found || (path.find(".cpp", path.size() - 4) != std::string::npos);
-    Found = Found || (path.find(".c++", path.size() - 4) != std::string::npos);
+    /*Found = Found || (path.find(".c++", path.size() - 4) != std::string::npos);
     Found = Found || (path.find(".cxx", path.size() - 4) != std::string::npos);
 
     Found = Found || (path.find(".i", path.size() - 2) != std::string::npos);
@@ -56,7 +57,8 @@ int string_found_C_extension(std::string path)
     Found = Found || (path.find(".tpp", path.size() - 4) != std::string::npos);
     Found = Found || (path.find(".t++", path.size() - 4) != std::string::npos);
     Found = Found || (path.find(".tpl", path.size() - 4) != std::string::npos);
-    Found = Found || (path.find(".txx", path.size() - 4) != std::string::npos);
+    Found = Found || (path.find(".txx", path.size() - 4) != std::string::npos);*/
+
     return Found;
 }
 
@@ -239,7 +241,8 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
 
                 //AT THIS POINT I HAVE A FRAGMENT OF SIZE 2*FragmentSize + 1 or less THAT CONTAINS WEAKNESS
                 Exmplr.fragment = previous;
-
+//debug printing
+/*
                 if(Exmplr.fragment.size() > 0)
                     std::cout << "DIRECTORY : "<< (*Paths)[i] << " ; MARKER : " << S_temp << " ; FRAGMENT : " << std::endl;
 
@@ -249,7 +252,7 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                     if(j == Exmplr.fragment.size() - 1)
                         std::cout << std::endl;
                 }
-
+*/
 
                 if(previous.size() > FragmentSize)
                     previous.erase(previous.begin(), previous.begin() + previous.size() - FragmentSize);
