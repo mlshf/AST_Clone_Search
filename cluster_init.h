@@ -13,6 +13,7 @@
 #include <vector>
 #include <cctype>
 #include <cmath>
+#include "git_exec.h"
 
 using namespace boost::filesystem;
 struct recursive_directory_range
@@ -26,22 +27,20 @@ struct recursive_directory_range
     path p_;
 };
 
-
-
 int string_found_C_extension(std::string path)
 {
     bool Found = (path.find(".h", path.size() - 2) != std::string::npos);
-    Found = Found || (path.find(".H", path.size() - 2) != std::string::npos);
-    Found = Found || (path.find(".hh", path.size() - 3) != std::string::npos);
+    /*Found = Found || (path.find(".H", path.size() - 2) != std::string::npos);
+    Found = Found || (path.find(".hh", path.size() - 3) != std::string::npos);*/
     Found = Found || (path.find(".hpp", path.size() - 4) != std::string::npos);
-    Found = Found || (path.find(".h++", path.size() - 4) != std::string::npos);
-    Found = Found || (path.find(".hxx", path.size() - 4) != std::string::npos);
+   /* Found = Found || (path.find(".h++", path.size() - 4) != std::string::npos);
+    Found = Found || (path.find(".hxx", path.size() - 4) != std::string::npos);*/
 
     Found = Found || (path.find(".c", path.size() - 2) != std::string::npos);
-    Found = Found || (path.find(".C", path.size() - 2) != std::string::npos);
-    Found = Found || (path.find(".cc", path.size() - 3) != std::string::npos);
+   /* Found = Found || (path.find(".C", path.size() - 2) != std::string::npos);
+    Found = Found || (path.find(".cc", path.size() - 3) != std::string::npos);*/
     Found = Found || (path.find(".cpp", path.size() - 4) != std::string::npos);
-    Found = Found || (path.find(".c++", path.size() - 4) != std::string::npos);
+    /*Found = Found || (path.find(".c++", path.size() - 4) != std::string::npos);
     Found = Found || (path.find(".cxx", path.size() - 4) != std::string::npos);
 
     Found = Found || (path.find(".i", path.size() - 2) != std::string::npos);
@@ -58,12 +57,14 @@ int string_found_C_extension(std::string path)
     Found = Found || (path.find(".tpp", path.size() - 4) != std::string::npos);
     Found = Found || (path.find(".t++", path.size() - 4) != std::string::npos);
     Found = Found || (path.find(".tpl", path.size() - 4) != std::string::npos);
-    Found = Found || (path.find(".txx", path.size() - 4) != std::string::npos);
+    Found = Found || (path.find(".txx", path.size() - 4) != std::string::npos);*/
+
     return Found;
 }
 
 int list_dir_contents(std::vector<std::string>* Paths)
 {
+    std::cout << "LISTING FILES WITH ACCEPTABLE EXTENSIONS : " << std::endl;
     for (directory_entry it : recursive_directory_range("."))
     {
         std::string path = it.path().string();
@@ -95,8 +96,11 @@ int Is_String_Not_Empty(std::string S_temp)//1 - does contain non-space characte
 
 void Delete_Extra_Spaces(std::string* Str)
 {
-    int beginning_flag = 1, whitespace_row = 0;
-    size_t i = 0;
+    int beginning_flag = 1, whitespace_row = 0;//beginning_flag means that we are at the beginning of the string
+    //it is needed for erasing all the whitespaces in the beginning, before the first !isspace() symbol
+    //whitespace_row is a flag, that contains information whether we encountered a space and all the next space symbols may be erased
+    //until we find !isspace() symbol
+    size_t i = 0;//position in the string. it is increased by 1 only if Str[i] wasn't erased
     while(i < Str->size())
     {
         if(beginning_flag == 1)
@@ -104,7 +108,7 @@ void Delete_Extra_Spaces(std::string* Str)
             if((*Str)[i] == ' ')
             {
                 Str->erase(Str->begin());
-                i = 0;
+                i = 0;//as we erase all the spaces at the beginning of the string we remain at position Str[0]
             }
             else
             {
@@ -122,19 +126,22 @@ void Delete_Extra_Spaces(std::string* Str)
                 }
                 else//it's first whitespace in a row
                 {
-                    whitespace_row = 1;
+                    whitespace_row = 1;//if whitespace row was not == 1, then we only make its value equal 1, as we don't delete the first space in the row
                     i++;
                 }
             }
             else
             {
-                whitespace_row = 0;
+                whitespace_row = 0;//if encountered symbol isn't space symbol, whitespace_row is set 0
                 i++;
             }
         }
     }
-    if((*Str)[Str->size() - 1] == ' ')
+
+    if((*Str)[Str->size() - 1] == ' ')//КОСТЫЛЬ, чтобы удалить последний пробел
         Str->erase(Str->begin() + Str->size() - 1);
+
+    return;
 }
 
 int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared)
@@ -171,7 +178,11 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
         in_file = fopen((*Paths)[i].c_str(), "r");
         if(in_file == NULL) return 1;*/
         ifstream in_file((*Paths)[i].c_str(), ios_base::in);
-        if(!in_file.is_open()) return 1;
+        if(!in_file.is_open())
+        {
+            std::cout << "FILE : " << (*Paths)[i] << " COULD NOT BE OPENED. ABORTING..." << std::endl;
+            return 1;
+        }
 
         std::vector<std::string> previous;//contains strings before commentary in number of FragmentSize
         //and if needed commentary is found then contains previous.size() + more
@@ -195,7 +206,6 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                 Exemplar Exmplr;
                 Exmplr.line = line + 1;
 
-                std::cout << (*Paths)[i] << " $$$ " << S_temp << std::endl;
                 int j = 0, prev_size = previous.size()/*, k = 0*/;//prev_size - size of previous[] before adding string with weakness
                 //k counts lines that cone AFTER line with weakness that are added to the previous[]
                 while(j <= prev_size && !in_file.eof())
@@ -231,66 +241,26 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
 
                 //AT THIS POINT I HAVE A FRAGMENT OF SIZE 2*FragmentSize + 1 or less THAT CONTAINS WEAKNESS
                 Exmplr.fragment = previous;
+//debug printing
+/*
+                if(Exmplr.fragment.size() > 0)
+                    std::cout << "DIRECTORY : "<< (*Paths)[i] << " ; MARKER : " << S_temp << " ; FRAGMENT : " << std::endl;
+
                 for(size_t j = 0; j < Exmplr.fragment.size(); ++j)
+                {
                     std::cout << Exmplr.fragment[j] << " " << Exmplr.line << std::endl;
-                std::cout << std::endl;
+                    if(j == Exmplr.fragment.size() - 1)
+                        std::cout << std::endl;
+                }
+*/
 
                 if(previous.size() > FragmentSize)
                     previous.erase(previous.begin(), previous.begin() + previous.size() - FragmentSize);
 
-
-                if(clusters->size() == 0)//if clusters->size() == 0 then we are working with the first weakness in commit
+                if(Exmplr.fragment.size() != 0)//because empty weaknesses are useless
                 {
-                    Cluster Clstr;//new cluster
-                    Commit Cmmt;//new commit
-                    Cmmt.SHA1 = SHA1;
-                    FileDescripton FlDscrptn;//new file description
-                    FlDscrptn.FilePath = (*Paths)[i];//FilePath is current (*Paths)[i]
-                    FlDscrptn.FileState = "start";//meaning that file is in the first commit
-                    FlDscrptn.exemplars.push_back(Exmplr);//FileDescription has no exemplars of weakness
-                    Cmmt.files.push_back(FlDscrptn);//commit has no FileDescriptions
-                    Clstr.commits.push_back(Cmmt);//cluster has no commits
-                    clusters->push_back(Clstr);//clusters has no elements
-                }
-                else//there are clusters already
-                {
-                    size_t ix = 0;
-                    int Found_Equal = 0;
-                    while( ix < clusters->size() && Found_Equal != 1 )
-                    {
-                        Found_Equal = Exemplars_Are_Equal( (*clusters)[ix].commits[0].files[0].exemplars[0], Exmplr );
-                        if(Found_Equal != 1) ++ix;//so that at the end we will have either ix = clusters.size() => no equal exemplars were found
-                        //or ix value will be index of cluster, that contains equal exemplar
-                    }
 
-                    if(Found_Equal == 1)//we have found equal exemplar
-                    {
-                        //now we have to check, if current Path is among FilePaths in FileDescriptions
-                        size_t jx = 0;
-                        int Found_Path = 0;
-                        while( jx < (*clusters)[ix].commits[0].files.size() && Found_Path != 1)//stop if searched through all files[] or if found Path
-                        {
-                            if( (*clusters)[ix].commits[0].files[jx].FilePath.compare((*Paths)[i]) == 0)//if there is a FilePath that is equal to current Path
-                                Found_Path = 1;
-
-                            if(Found_Path != 1) jx++;//so that at the end jx will be either size() => no equal paths were found
-                            //or it'll be index of file, that contains another weakness of current type
-                        }
-
-                        if(Found_Path == 1)
-                        {
-                            (*clusters)[ix].commits[0].files[jx].exemplars.push_back(Exmplr);//just adding exemplar to the file that already has similar weaknesses
-                        }
-                        else//no files that already contain weakness of current type were found
-                        {
-                            FileDescripton FlDscrptn;
-                            FlDscrptn.FilePath = (*Paths)[i];
-                            FlDscrptn.FileState = "start";
-                            FlDscrptn.exemplars.push_back(Exmplr);
-                            (*clusters)[ix].commits[0].files.push_back(FlDscrptn);
-                        }
-                    }
-                    else//haven't found any existing cluster of the same type of weakness
+                    if(clusters->size() == 0)//if clusters->size() == 0 then we are working with the first weakness in commit
                     {
                         Cluster Clstr;//new cluster
                         Commit Cmmt;//new commit
@@ -301,7 +271,60 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                         FlDscrptn.exemplars.push_back(Exmplr);//FileDescription has no exemplars of weakness
                         Cmmt.files.push_back(FlDscrptn);//commit has no FileDescriptions
                         Clstr.commits.push_back(Cmmt);//cluster has no commits
-                        clusters->push_back(Clstr);//clusters has no element of current weakness type
+                        clusters->push_back(Clstr);//clusters has no elements
+                    }
+                    else//there are clusters already
+                    {
+                        size_t ix = 0;
+                        int Found_Equal = 0;
+                        while( ix < clusters->size() && Found_Equal != 1 )
+                        {
+                            Found_Equal = Exemplars_Are_Equal( (*clusters)[ix].commits[0].files[0].exemplars[0], Exmplr );
+                            if(Found_Equal != 1) ++ix;//so that at the end we will have either ix = clusters.size() => no equal exemplars were found
+                            //or ix value will be index of cluster, that contains equal exemplar
+                        }
+
+                        if(Found_Equal == 1)//we have found equal exemplar
+                        {
+                            //now we have to check, if current Path is among FilePaths in FileDescriptions
+                            size_t jx = 0;
+                            int Found_Path = 0;
+                            while( jx < (*clusters)[ix].commits[0].files.size() && Found_Path != 1)//stop if searched through all files[] or if found Path
+                            {
+                                if( (*clusters)[ix].commits[0].files[jx].FilePath.compare((*Paths)[i]) == 0)//if there is a FilePath that is equal to current Path
+                                    Found_Path = 1;
+
+                                if(Found_Path != 1) jx++;//so that at the end jx will be either size() => no equal paths were found
+                                //or it'll be index of file, that contains another weakness of current type
+                            }
+
+                            if(Found_Path == 1)
+                            {
+                                (*clusters)[ix].commits[0].files[jx].exemplars.push_back(Exmplr);//just adding exemplar to the file that already has similar weaknesses
+                            }
+                            else//no files that already contain weakness of current type were found
+                            {
+                                FileDescripton FlDscrptn;
+                                FlDscrptn.FilePath = (*Paths)[i];
+                                FlDscrptn.FileState = "start";
+                                FlDscrptn.exemplars.push_back(Exmplr);
+                                (*clusters)[ix].commits[0].files.push_back(FlDscrptn);
+                            }
+                        }
+                        else//haven't found any existing cluster of the same type of weakness
+                        {
+                            Cluster Clstr;//new cluster
+                            Commit Cmmt;//new commit
+                            Cmmt.SHA1 = SHA1;
+                            FileDescripton FlDscrptn;//new file description
+                            FlDscrptn.FilePath = (*Paths)[i];//FilePath is current (*Paths)[i]
+                            FlDscrptn.FileState = "start";//meaning that file is in the first commit
+                            FlDscrptn.exemplars.push_back(Exmplr);//FileDescription has no exemplars of weakness
+                            Cmmt.files.push_back(FlDscrptn);//commit has no FileDescriptions
+                            Clstr.commits.push_back(Cmmt);//cluster has no commits
+                            clusters->push_back(Clstr);//clusters has no element of current weakness type
+                        }
+
                     }
 
                 }
