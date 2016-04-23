@@ -78,7 +78,7 @@
 	<strings.h>
 	<vector>
 
-1461413642 source:/home/nikita/Course_Realization/history_analysis.h
+1461413197 source:/home/nikita/Course_Realization/history_analysis.h
 	"cluster.h"
 	"cluster_init.h"
 	"git_exec.h"
@@ -95,6 +95,117 @@
 	<cmath>
 
 1461413642 /home/nikita/Course_Realization/history_analysis.h
+	"cluster.h"
+	"cluster_init.h"
+	"git_exec.h"
+	<boost/filesystem.hpp>
+	<iostream>
+	<fstream>
+	<stdio.h>
+	<stdlib.h>
+	<string>
+	<string.h>
+	<strings.h>
+	<vector>
+	<cctype>
+	<cmath>
+
+1461413642 source:/home/nikita/C_R_temp/history_analysis.h
+	"cluster.h"
+	"cluster_init.h"
+	"git_exec.h"
+	<boost/filesystem.hpp>
+	<iostream>
+	<fstream>
+	<stdio.h>
+	<stdlib.h>
+	<string>
+	<string.h>
+	<strings.h>
+	<vector>
+	<cctype>
+	<cmath>
+
+1460662061 /home/nikita/C_R_temp/cluster.h
+	<iostream>
+	<stdio.h>
+	<stdlib.h>
+	<string>
+	<string.h>
+	<strings.h>
+	<vector>
+
+1461403842 /home/nikita/C_R_temp/cluster_init.h
+	"cluster.h"
+	<boost/filesystem.hpp>
+	<iostream>
+	<fstream>
+	<stdio.h>
+	<stdlib.h>
+	<string>
+	<string.h>
+	<strings.h>
+	<vector>
+	<cctype>
+	<cmath>
+	"git_exec.h"
+
+1460834990 /home/nikita/C_R_temp/git_exec.h
+	<iostream>
+	<stdio.h>
+	<stdlib.h>
+	<string>
+	<string.h>
+	<strings.h>
+	<vector>
+
+1460662061 source:/home/nikita/C_R_temp/cluster.h
+	<iostream>
+	<stdio.h>
+	<stdlib.h>
+	<string>
+	<string.h>
+	<strings.h>
+	<vector>
+
+1461403842 source:/home/nikita/C_R_temp/cluster_init.h
+	"cluster.h"
+	<boost/filesystem.hpp>
+	<iostream>
+	<fstream>
+	<stdio.h>
+	<stdlib.h>
+	<string>
+	<string.h>
+	<strings.h>
+	<vector>
+	<cctype>
+	<cmath>
+	"git_exec.h"
+
+1460834990 source:/home/nikita/C_R_temp/git_exec.h
+	<iostream>
+	<stdio.h>
+	<stdlib.h>
+	<string>
+	<string.h>
+	<strings.h>
+	<vector>
+
+1461413563 source:/home/nikita/C_R_temp/main.cpp
+	<iostream>
+	<stdio.h>
+	<stdlib.h>
+	<string>
+	<string.h>
+	<strings.h>
+	<vector>
+	"git_exec.h"
+	"cluster_init.h"
+	"cluster.h"
+	"history_analysis.h"
+
+1461413642 /home/nikita/C_R_temp/history_analysis.h
 	"cluster.h"
 	"cluster_init.h"
 	"git_exec.h"
