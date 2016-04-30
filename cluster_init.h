@@ -286,29 +286,55 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
 
                         if(Found_Equal == 1)//we have found equal exemplar
                         {
-                            //now we have to check, if current Path is among FilePaths in FileDescriptions
-                            size_t jx = 0;
-                            int Found_Path = 0;
-                            while( jx < (*clusters)[ix].commits[0].files.size() && Found_Path != 1)//stop if searched through all files[] or if found Path
+                            size_t J = 0;//finding out if current commits is already in cluster's description
+                            int Found_SHA1 = 0;
+                            while( J < (*clusters)[ix].commits.size() && Found_SHA1 != 1 )
                             {
-                                if( (*clusters)[ix].commits[0].files[jx].FilePath.compare((*Paths)[i]) == 0)//if there is a FilePath that is equal to current Path
-                                    Found_Path = 1;
-
-                                if(Found_Path != 1) jx++;//so that at the end jx will be either size() => no equal paths were found
-                                //or it'll be index of file, that contains another weakness of current type
+                                if( SHA1.compare( (*clusters)[ix].commits[J].SHA1 ) == 0 )
+                                {
+                                    Found_SHA1 = 1;
+                                }
+                                else
+                                    ++J;
                             }
 
-                            if(Found_Path == 1)
+                            if( Found_SHA1 == 1 )//meaning there's already current commit's description in cluster
                             {
-                                (*clusters)[ix].commits[0].files[jx].exemplars.push_back(Exmplr);//just adding exemplar to the file that already has similar weaknesses
+                                //now we have to check, if current Path is among FilePaths in FileDescriptions
+                                size_t jx = 0;
+                                int Found_Path = 0;
+                                while( jx < (*clusters)[ix].commits[J].files.size() && Found_Path != 1)//stop if searched through all files[] or if found Path
+                                {
+                                    if( (*clusters)[ix].commits[J].files[jx].FilePath.compare((*Paths)[i]) == 0)//if there is a FilePath that is equal to current Path
+                                        Found_Path = 1;
+
+                                    if(Found_Path != 1) jx++;//so that at the end jx will be either size() => no equal paths were found
+                                    //or it'll be index of file, that contains another weakness of current type
+                                }
+
+                                if(Found_Path == 1)
+                                {
+                                    (*clusters)[ix].commits[J].files[jx].exemplars.push_back(Exmplr);//just adding exemplar to the file that already has similar weaknesses
+                                }
+                                else//no files that already contain weakness of current type were found
+                                {
+                                    FileDescripton FlDscrptn;
+                                    FlDscrptn.FilePath = (*Paths)[i];
+                                    FlDscrptn.FileState = "start";
+                                    FlDscrptn.exemplars.push_back(Exmplr);
+                                    (*clusters)[ix].commits[J].files.push_back(FlDscrptn);
+                                }
                             }
-                            else//no files that already contain weakness of current type were found
+                            else
                             {
-                                FileDescripton FlDscrptn;
-                                FlDscrptn.FilePath = (*Paths)[i];
-                                FlDscrptn.FileState = "start";
-                                FlDscrptn.exemplars.push_back(Exmplr);
-                                (*clusters)[ix].commits[0].files.push_back(FlDscrptn);
+                                Commit Cmmt;//new commit
+                                Cmmt.SHA1 = SHA1;
+                                FileDescripton FlDscrptn;//new file description
+                                FlDscrptn.FilePath = (*Paths)[i];//FilePath is current (*Paths)[i]
+                                FlDscrptn.FileState = "start";//meaning that file is in the first commit
+                                FlDscrptn.exemplars.push_back(Exmplr);//FileDescription has no exemplars of weakness
+                                Cmmt.files.push_back(FlDscrptn);//commit has no FileDescriptions
+                                (*clusters)[ix].commits.push_back(Cmmt);//cluster has no such commit yet
                             }
                         }
                         else//haven't found any existing cluster of the same type of weakness

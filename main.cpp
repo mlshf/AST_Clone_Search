@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
@@ -9,20 +10,72 @@
 #include "cluster_init.h"//initializes clusters
 #include "cluster.h"
 #include "history_analysis.h"
+#include <cctype>
 
 using namespace std;
+
+int Get_Start_SHA1(const char* filename, vector<string>* Start_SHA1)
+{
+    ifstream in_file(filename, ios_base::in);
+    if(!in_file.is_open())
+    {
+        std::cout << "FILE : " << filename << " COULD NOT BE OPENED. ABORTING..." << std::endl;
+        return 1;
+    }
+
+    while(!in_file.eof())
+    {
+        string S_temp;
+        getline(in_file, S_temp);
+        int it_is_SHA1 = 1;
+        for(size_t i = 0; i < S_temp.size() && it_is_SHA1 == 1; ++i)
+        {
+            if( (isdigit(S_temp[i]) || isalpha(S_temp[i])) == 0 )
+                it_is_SHA1 = 0;
+        }
+        if(it_is_SHA1 == 1 && S_temp.size() == 40)
+            Start_SHA1->push_back(S_temp);
+    }
+
+    return 0;
+}
 
 int main(int argc, char* argv[])
 {
 //181ed5489bfc64cc0f241f385f1d24f3241cb155
-if(argc == 2 && strlen(argv[1]) == 40)
+if(argc == 4)
 {
-    size_t FragmentSize = 3;
-    string WeaknessMarker("#_Weakness_Threat_#");
+    stringstream S_FragmentSize(argv[2]);
+    size_t FragmentSize;
+    S_FragmentSize >> FragmentSize;
+    string WeaknessMarker(argv[3]);
+
     cout <<"#GIT COMMANDS EMULATION..." << endl << endl;
     //string S1("git rev-list --min-parents=0 HEAD");
 
-    string S_SHA1(argv[1]);
+    vector<string> Start_SHA1;
+
+    if(Get_Start_SHA1(argv[1], &Start_SHA1) == 1)
+    {
+        exec_git_command("git checkout master");
+        return 1;
+    }
+
+
+    cout << "SHA1 hashes of commits used for initializing are:" << endl;
+    for(size_t i = 0; i < Start_SHA1.size(); ++i)
+        cout << Start_SHA1[i] << endl;
+    cout << endl;
+
+    if(Start_SHA1.size() == 0)
+    {
+        cout << "No hashes in " << argv[1] << "Aborting..." << endl;
+        return 1;
+    }
+
+    string S_SHA1(Start_SHA1[0]);
+    cout << "Start commit's SHA1 hash is: " << S_SHA1 << endl;
+
 /*
     vector<string> Vector_SHA1;
     cout << Vector_SHA1.size() << endl;
@@ -35,7 +88,7 @@ if(argc == 2 && strlen(argv[1]) == 40)
     Level0.level = 0;
     Level0.SHA1_of_commits.push_back(S_SHA1);
     Commit_Levels.push_back(Level0);
-    if(Fill_Commit_Levels(&Commit_Levels) == 1)
+    if(Fill_Commit_Levels(&Commit_Levels, &Start_SHA1) == 1)
     {
         exec_git_command("git checkout master");
         return 1;
@@ -51,22 +104,28 @@ if(argc == 2 && strlen(argv[1]) == 40)
     }
     cout << endl;
 
-    string git_command("git checkout ");//so that we use starting commit to initialize clusters
-    git_command += S_SHA1;
-    if(exec_git_command(git_command) == 1)
-        return 1;
-
-    vector<string> Vector_of_Paths;
-    list_dir_contents(&Vector_of_Paths);
-
     vector<Cluster> Clusters;
-    if(initialize_clusters(&Vector_of_Paths, &Clusters, S_SHA1, FragmentSize, WeaknessMarker) == 1)
-    {
-        exec_git_command("git checkout master");
-        return 1;
-    }
 
-    Vector_of_Paths.clear();//we no longer need the resources
+    for(size_t i = 0; i < Start_SHA1.size(); ++i)
+    {
+
+        string git_command("git checkout ");//so that we use starting commit to initialize clusters
+        git_command += Start_SHA1[i];
+        if(exec_git_command(git_command) == 1)
+            return 1;
+
+        vector<string> Vector_of_Paths;
+        list_dir_contents(&Vector_of_Paths);
+
+        if(initialize_clusters(&Vector_of_Paths, &Clusters, Start_SHA1[i], FragmentSize, WeaknessMarker) == 1)
+        {
+            exec_git_command("git checkout master");
+            return 1;
+        }
+
+        Vector_of_Paths.clear();//we no longer need the resources
+
+    }
 
     if(Analyze_History(&Commit_Levels, &Clusters, FragmentSize) == 1)
     {
@@ -74,7 +133,7 @@ if(argc == 2 && strlen(argv[1]) == 40)
         return 1;
     }
 
-    cout << "CLUSTERS ENUMERATION: " << endl << endl;
+    cout << "RESULT: " << endl << endl;
     for(size_t i = 0; i < Clusters.size(); ++i)
     {
         cout << "CLUSTER #" << i << " :" << endl << "-----------------------------------------------------------" << endl;
@@ -102,7 +161,7 @@ if(argc == 2 && strlen(argv[1]) == 40)
 
 }
 else
-    cout << "EXACTLY ONE PARAMETER IS NEEDED - SHA1 OF STARTING COMMIT!" << endl;
+    cout << "Exactly three parameters are needed - file with SHA1 hashes of starting commits, fragment size and text of marker-commentary." << endl;
 
     cout << endl;
     exec_git_command("git checkout master");

@@ -38,7 +38,7 @@ int Are_There_Equal_Strings(vector<string>* VS, string S)
 //creates vector of levels of commits
 //level 0 - starting commit
 //level i+1 - level of commits-descendants of commits from level i
-int Fill_Commit_Levels(vector<Commit_Level>* Commit_Levels)
+int Fill_Commit_Levels(vector<Commit_Level>* Commit_Levels, vector<string>* Start_SHA1)
 {
     size_t i = 1;//number of current level; 1 at the beginning of the process
     int unchecked_commits = (int)(*Commit_Levels)[i - 1].SHA1_of_commits.size();//as we work we have two sets of commits
@@ -74,6 +74,28 @@ int Fill_Commit_Levels(vector<Commit_Level>* Commit_Levels)
         unchecked_commits = (int)Level_i.SHA1_of_commits.size();
         //cout << "Current level size is: " << unchecked_commits << endl << endl;
 
+    }
+
+    //now we need to exclude commits that are listed in file argv[1] from Commit_Levels, because we consider them already processed
+    for(size_t i = 0; i < Commit_Levels->size(); ++i)
+    {
+        size_t j = 0;
+        while( j < (*Commit_Levels)[i].SHA1_of_commits.size() )
+        {
+            int Not_Initial = 1;
+            for(size_t k = 1; k < Start_SHA1->size() && Not_Initial == 1; ++k)
+            {
+                if( (*Start_SHA1)[k].compare( (*Commit_Levels)[i].SHA1_of_commits[j] ) == 0 )
+                    Not_Initial = 0;
+            }
+
+            if(Not_Initial == 0)
+            {
+                (*Commit_Levels)[i].SHA1_of_commits.erase( (*Commit_Levels)[i].SHA1_of_commits.begin() + j );
+            }
+            else
+                ++j;
+        }
     }
 
     return 0;
