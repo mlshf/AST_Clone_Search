@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1462018179 source:/home/nikita/Course_Realization/main.cpp
+1462039839 source:/home/nikita/Course_Realization/main.cpp
 	<iostream>
 	<sstream>
 	<stdio.h>
@@ -13,6 +13,7 @@
 	"cluster.h"
 	"history_analysis.h"
 	<cctype>
+	"output.h"
 
 1460834990 /home/nikita/Course_Realization/git_exec.h
 	<iostream>
@@ -222,4 +223,19 @@
 	<vector>
 	<cctype>
 	<cmath>
+
+1462039595 /home/nikita/Course_Realization/output.h
+	<iostream>
+	<sstream>
+	<stdio.h>
+	<stdlib.h>
+	<string>
+	<string.h>
+	<strings.h>
+	<vector>
+	"git_exec.h"
+	"cluster_init.h"
+	"cluster.h"
+	"history_analysis.h"
+	<cctype>
 

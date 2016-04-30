@@ -51,6 +51,10 @@
 			<Option compile="1" />
 		</Unit>
 		<Unit filename="main.cpp" />
+		<Unit filename="output.h">
+			<Option compile="1" />
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
 		<Extensions>
 			<code_completion />
 			<debugger />

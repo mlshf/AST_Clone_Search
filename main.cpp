@@ -11,6 +11,7 @@
 #include "cluster.h"
 #include "history_analysis.h"
 #include <cctype>
+#include "output.h"
 
 using namespace std;
 
@@ -42,8 +43,8 @@ int Get_Start_SHA1(const char* filename, vector<string>* Start_SHA1)
 
 int main(int argc, char* argv[])
 {
-//181ed5489bfc64cc0f241f385f1d24f3241cb155
-if(argc == 4)
+//181ed5489bfc64cc0f241f385f1d24f3241cb155 - example of SHA1 - used just for debugging
+if(argc == 5)
 {
     stringstream S_FragmentSize(argv[2]);
     size_t FragmentSize;
@@ -133,6 +134,13 @@ if(argc == 4)
         return 1;
     }
 
+    //producing output
+    string BaseName(argv[4]);
+    if( Output_Of_Result(&Clusters, BaseName) == 1 )
+    {
+        return 1;
+    }
+
     cout << "RESULT: " << endl << endl;
     for(size_t i = 0; i < Clusters.size(); ++i)
     {
@@ -161,7 +169,8 @@ if(argc == 4)
 
 }
 else
-    cout << "Exactly three parameters are needed - file with SHA1 hashes of starting commits, fragment size and text of marker-commentary." << endl;
+    cout << "Exactly four parameters are needed - file with SHA1 hashes of starting commits, fragment size, text of marker-commentary and path to output file that describes cluster without extension." << endl;
+    cout << "For example: ../Course_Realization/bin/Debug/Course_Realization '../sha1.txt' 3 '#_Weakness_Threat_#' '../output'" << endl;;
 
     cout << endl;
     exec_git_command("git checkout master");
