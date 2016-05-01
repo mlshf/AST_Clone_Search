@@ -15,6 +15,7 @@
 #include <vector>
 #include <cctype>
 #include <cmath>
+#include "lexical.h"
 
 using namespace std;
 

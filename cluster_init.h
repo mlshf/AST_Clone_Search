@@ -14,6 +14,7 @@
 #include <cctype>
 #include <cmath>
 #include "git_exec.h"
+#include "lexical.h"
 
 using namespace boost::filesystem;
 struct recursive_directory_range
@@ -139,6 +140,13 @@ void Delete_Extra_Spaces(std::string* Str)
     }
 
     if((*Str)[Str->size() - 1] == ' ')//КОСТЫЛЬ, чтобы удалить последний пробел
+        Str->erase(Str->begin() + Str->size() - 1);
+
+    if((*Str)[Str->size() - 1] == '}')//deleting figure braces at the end and beginning of the string - they can be located at different lines, but fragment still can be clones
+        Str->erase(Str->begin() + Str->size() - 1);
+    if( (*Str).size() >= 2 && (*Str)[Str->size() - 2] == ')' && (*Str)[Str->size() - 1] == '{' )
+        Str->erase(Str->begin() + Str->size() - 1);
+    if( (*Str).size() >= 1 && (*Str)[0] == '{' )
         Str->erase(Str->begin() + Str->size() - 1);
 
     return;

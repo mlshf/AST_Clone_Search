@@ -33,7 +33,7 @@
 	<strings.h>
 	<vector>
 
-1462019266 source:/home/nikita/Course_Realization/cluster_init.h
+1462116255 source:/home/nikita/Course_Realization/cluster_init.h
 	"cluster.h"
 	<boost/filesystem.hpp>
 	<iostream>
@@ -47,8 +47,9 @@
 	<cctype>
 	<cmath>
 	"git_exec.h"
+	"lexical.h"
 
-1462019266 /home/nikita/Course_Realization/cluster_init.h
+1462116255 /home/nikita/Course_Realization/cluster_init.h
 	"cluster.h"
 	<boost/filesystem.hpp>
 	<iostream>
@@ -62,6 +63,7 @@
 	<cctype>
 	<cmath>
 	"git_exec.h"
+	"lexical.h"
 
 1460662061 source:/home/nikita/Course_Realization/cluster.h
 	<iostream>
@@ -81,7 +83,7 @@
 	<strings.h>
 	<vector>
 
-1462017643 source:/home/nikita/Course_Realization/history_analysis.h
+1462114918 source:/home/nikita/Course_Realization/history_analysis.h
 	"cluster.h"
 	"cluster_init.h"
 	"git_exec.h"
@@ -96,8 +98,9 @@
 	<vector>
 	<cctype>
 	<cmath>
+	"lexical.h"
 
-1462017643 /home/nikita/Course_Realization/history_analysis.h
+1462114918 /home/nikita/Course_Realization/history_analysis.h
 	"cluster.h"
 	"cluster_init.h"
 	"git_exec.h"
@@ -112,6 +115,7 @@
 	<vector>
 	<cctype>
 	<cmath>
+	"lexical.h"
 
 1461413642 source:/home/nikita/C_R_temp/history_analysis.h
 	"cluster.h"
@@ -238,4 +242,14 @@
 	"cluster.h"
 	"history_analysis.h"
 	<cctype>
+
+1462116952 /home/nikita/Course_Realization/lexical.h
+	<stdio.h>
+	<ctype.h>
+	<string.h>
+	<stdio.h>
+	<stdlib.h>
+	<vector>
+	<string>
+	<iostream>
 
