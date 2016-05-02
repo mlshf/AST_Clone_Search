@@ -104,10 +104,18 @@ int Fill_Commit_Levels(vector<Commit_Level>* Commit_Levels, vector<string>* Star
 
 void Find_Indices_of_Clusters(string S_compared, vector<Cluster>* Clusters, vector<size_t>* Need_to_Compare)//returns number of cluster that contains similar original string or -1 otherwise
 {
+    vector<string> first;
+    first.push_back(S_compared);
+
     for(size_t i = 0; i < Clusters->size(); ++i)
     {
         int j = (*Clusters)[i].commits[0].files[0].exemplars[0].fragment.size() / 2;//because size is always 2 * FragmentSize + 1, middle string index is j
-        if(S_compared.compare( (*Clusters)[i].commits[0].files[0].exemplars[0].fragment[j] ) == 0)
+        /*if(S_compared.compare( (*Clusters)[i].commits[0].files[0].exemplars[0].fragment[j] ) == 0)
+            Need_to_Compare->push_back(i);*/
+        vector<string> second;
+        second.push_back( (*Clusters)[i].commits[0].files[0].exemplars[0].fragment[j] );
+
+        if(Perform_Comparison(&first, &second) == 0)
             Need_to_Compare->push_back(i);
     }
     return;

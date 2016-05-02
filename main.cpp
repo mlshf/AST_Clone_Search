@@ -136,42 +136,47 @@ if(argc == 5)
 
     //producing output
     string BaseName(argv[4]);
-    if( Output_Of_Result(&Clusters, BaseName) == 1 )
+    if( Output_Of_Result(&Clusters, BaseName) == 1 )//if we could not create all output files then we dump clusters in the console
     {
-        return 1;
-    }
-
-    cout << "RESULT: " << endl << endl;
-    for(size_t i = 0; i < Clusters.size(); ++i)
-    {
-        cout << "CLUSTER #" << i << " :" << endl << "-----------------------------------------------------------" << endl;
-        for(size_t j = 0; j < Clusters[i].commits.size(); ++j)
+        cout << "Something went wrong with creating result with GraphViz..." << endl;
+        cout << "RESULT: " << endl << endl;
+        for(size_t i = 0; i < Clusters.size(); ++i)
         {
-            cout << "COMMIT #" << j << " ; " << "SHA1 : " << Clusters[i].commits[j].SHA1 << " :" << endl;
-            for(size_t k = 0; k < Clusters[i].commits[j].files.size(); ++k)
+            cout << "CLUSTER #" << i << " :" << endl << "-----------------------------------------------------------" << endl;
+            for(size_t j = 0; j < Clusters[i].commits.size(); ++j)
             {
-                cout << "FILE : " << Clusters[i].commits[j].files[k].FilePath << " ; STATE = " << Clusters[i].commits[j].files[k].FileState;
-                cout <<" ; NUMBER OF EXEMPLARS = " << Clusters[i].commits[j].files[k].exemplars.size() << " ; LINES & SIZES : ";
-                for(size_t n = 0; n < Clusters[i].commits[j].files[k].exemplars.size(); ++n)
+                cout << "COMMIT #" << j << " ; " << "SHA1 : " << Clusters[i].commits[j].SHA1 << " :" << endl;
+                for(size_t k = 0; k < Clusters[i].commits[j].files.size(); ++k)
                 {
-                    cout << Clusters[i].commits[j].files[k].exemplars[n].line << " " << Clusters[i].commits[j].files[k].exemplars[n].fragment.size();
-                    if(n != Clusters[i].commits[j].files[k].exemplars.size() - 1) cout << " , ";
+                    cout << "FILE : " << Clusters[i].commits[j].files[k].FilePath << " ; STATE = " << Clusters[i].commits[j].files[k].FileState;
+                    cout <<" ; NUMBER OF EXEMPLARS = " << Clusters[i].commits[j].files[k].exemplars.size() << " ; LINES & SIZES : ";
+                    for(size_t n = 0; n < Clusters[i].commits[j].files[k].exemplars.size(); ++n)
+                    {
+                        cout << Clusters[i].commits[j].files[k].exemplars[n].line << " " << Clusters[i].commits[j].files[k].exemplars[n].fragment.size();
+                        if(n != Clusters[i].commits[j].files[k].exemplars.size() - 1) cout << " , ";
+                    }
+                    cout << endl;
+
                 }
                 cout << endl;
-
             }
-            cout << endl;
+            cout << "=============================================================================" << endl;
         }
-        cout << "=============================================================================" << endl;
+
+        return 1;
     }
 
     cout <<"#PROCESS IS OVER..." << endl;
 
+    /*for(size_t i = 0; i < Start_SHA1.size(); ++ i)
+        cout << Start_SHA1[i] << endl;*/
+
 }
 else
+{
     cout << "Exactly four parameters are needed - file with SHA1 hashes of starting commits, fragment size, text of marker-commentary and path to output file that describes cluster without extension." << endl;
     cout << "For example: ../Course_Realization/bin/Debug/Course_Realization '../sha1.txt' 3 '#_Weakness_Threat_#' '../output'" << endl;;
-
+}
     cout << endl;
     exec_git_command("git checkout master");
 

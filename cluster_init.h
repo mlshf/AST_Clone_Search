@@ -30,18 +30,18 @@ struct recursive_directory_range
 
 int string_found_C_extension(std::string path)
 {
-    bool Found = (path.find(".h", path.size() - 2) != std::string::npos);
-    /*Found = Found || (path.find(".H", path.size() - 2) != std::string::npos);
-    Found = Found || (path.find(".hh", path.size() - 3) != std::string::npos);*/
+    bool Found = (path.find(".h", path.size() - 2) != std::string::npos);/*
+    Found = Found || (path.find(".H", path.size() - 2) != std::string::npos);
+    Found = Found || (path.find(".hh", path.size() - 3) != std::string::npos);
     Found = Found || (path.find(".hpp", path.size() - 4) != std::string::npos);
-   /* Found = Found || (path.find(".h++", path.size() - 4) != std::string::npos);
+    Found = Found || (path.find(".h++", path.size() - 4) != std::string::npos);
     Found = Found || (path.find(".hxx", path.size() - 4) != std::string::npos);*/
 
-    Found = Found || (path.find(".c", path.size() - 2) != std::string::npos);
-   /* Found = Found || (path.find(".C", path.size() - 2) != std::string::npos);
-    Found = Found || (path.find(".cc", path.size() - 3) != std::string::npos);*/
+    Found = Found || (path.find(".c", path.size() - 2) != std::string::npos);/*
+    Found = Found || (path.find(".C", path.size() - 2) != std::string::npos);
+    Found = Found || (path.find(".cc", path.size() - 3) != std::string::npos);
     Found = Found || (path.find(".cpp", path.size() - 4) != std::string::npos);
-    /*Found = Found || (path.find(".c++", path.size() - 4) != std::string::npos);
+    Found = Found || (path.find(".c++", path.size() - 4) != std::string::npos);
     Found = Found || (path.find(".cxx", path.size() - 4) != std::string::npos);
 
     Found = Found || (path.find(".i", path.size() - 2) != std::string::npos);
@@ -95,7 +95,7 @@ int Is_String_Not_Empty(std::string S_temp)//1 - does contain non-space characte
     return String_Not_Empty;
 }
 
-void Delete_Extra_Spaces(std::string* Str)
+void Delete_Extra_Spaces(std::string* Str)//deletes space symbols except \n and comment
 {
     int beginning_flag = 1, whitespace_row = 0;//beginning_flag means that we are at the beginning of the string
     //it is needed for erasing all the whitespaces in the beginning, before the first !isspace() symbol
@@ -106,7 +106,7 @@ void Delete_Extra_Spaces(std::string* Str)
     {
         if(beginning_flag == 1)
         {
-            if((*Str)[i] == ' ')
+            if(isspace((*Str)[i]) && (*Str)[i] != '\n')
             {
                 Str->erase(Str->begin());
                 i = 0;//as we erase all the spaces at the beginning of the string we remain at position Str[0]
@@ -119,7 +119,7 @@ void Delete_Extra_Spaces(std::string* Str)
         }
         else
         {
-            if((*Str)[i] == ' ')
+            if(isspace((*Str)[i]) && (*Str)[i] != '\n')
             {
                 if(whitespace_row == 1)
                 {
@@ -127,6 +127,7 @@ void Delete_Extra_Spaces(std::string* Str)
                 }
                 else//it's first whitespace in a row
                 {
+                    (*Str)[i] = ' ';
                     whitespace_row = 1;//if whitespace row was not == 1, then we only make its value equal 1, as we don't delete the first space in the row
                     i++;
                 }
@@ -139,41 +140,95 @@ void Delete_Extra_Spaces(std::string* Str)
         }
     }
 
-    if((*Str)[Str->size() - 1] == ' ')//КОСТЫЛЬ, чтобы удалить последний пробел
+    if( isspace((*Str)[Str->size() - 1]) && (*Str)[Str->size() - 1] != '\n')//deleting last space symbol
         Str->erase(Str->begin() + Str->size() - 1);
 
-    if((*Str)[Str->size() - 1] == '}')//deleting figure braces at the end and beginning of the string - they can be located at different lines, but fragment still can be clones
+//serious doubt! deleting commets ath the end if line
+    if( Str->rfind(";//") != string::npos )
+        Str->erase( Str->rfind(";//") + 1,  Str->size() - Str->rfind(";//") - 1);
+
+    if( Str->rfind("; //") != string::npos )
+        Str->erase( Str->rfind("; //") + 1,  Str->size() - Str->rfind("; //") - 1);
+
+    //deleting figure braces at the end and beginning of the string - they can be located at different lines, but fragment still can be clones
+    if((*Str)[Str->size() - 1] == '}')
         Str->erase(Str->begin() + Str->size() - 1);
-    if( (*Str).size() >= 2 && (*Str)[Str->size() - 2] == ')' && (*Str)[Str->size() - 1] == '{' )
+
+    if( Str->size() >= 2 && (*Str)[Str->size() - 2] == ')' && (*Str)[Str->size() - 1] == '{' )
         Str->erase(Str->begin() + Str->size() - 1);
-    if( (*Str).size() >= 1 && (*Str)[0] == '{' )
+
+    if( Str->size() >= 1 && (*Str)[0] == '{' )
         Str->erase(Str->begin() + Str->size() - 1);
 
     return;
 }
 
-int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared)
+int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared)// returns 1 if clones, 0 if not
 {
-    int offset = ((int)Original.fragment.size() - (int)Compared.fragment.size()) / 2;
+    int offset = 0;/* = ((int)Original.fragment.size() - (int)Compared.fragment.size()) / 2;
+    Exemplar small = Compared, big = Original;*/
+
+    if(Original.fragment.size() <= Compared.fragment.size())//if original is included in compared
+    {/*
+        small = Original;
+        big = Compared;*/
+        offset = ( (int)Compared.fragment.size() - (int)Original.fragment.size() ) / 2;
+    }
+    else if( Compared.fragment.size() < Original.fragment.size() )
+    {
+        return 0;//because if Compared is smaller than Original it is not considered a clone
+    }
+
+    int are_equal = 1;//return value, 1 if clones
+    //offset = abs(offset);
+    size_t i = 0;
+    vector<string> first, second;
+    for(; i < Original.fragment.size(); ++i)
+    {
+        //std::cout << small.fragment[i] << " " << big.fragment[i + offset] << endl;
+        /*if( small.fragment[i].compare(big.fragment[offset + i]) != 0 )
+        {
+            are_equal = 0;
+        }*/
+        first.push_back( Original.fragment[i] );
+        second.push_back( Compared.fragment[offset + i] );
+    }
+
+    if(Perform_Comparison(&first, &second) == 1)//returns 1 if not clones, 0 if clones
+        are_equal = 0;//so return value is 0 if not clones
+
+    return are_equal;
+}
+
+//this function is needed because when initializing compared can be a part of original
+int Init_Exemplars_Are_Equal(Exemplar Original, Exemplar Compared)// returns 1 if clones, 0 if not
+{
+    int offset  = ((int)Original.fragment.size() - (int)Compared.fragment.size()) / 2;
     Exemplar small = Compared, big = Original;
 
-    if(offset < 0)
+    if(offset < 0)//if original is included in compared
     {
         small = Original;
         big = Compared;
     }
 
-    int are_equal = 1;
+    int are_equal = 1;//return value, 1 if clones
     offset = abs(offset);
     size_t i = 0;
-    for(; i < small.fragment.size() && are_equal == 1; ++i)
+    vector<string> first, second;
+    for(; i < small.fragment.size(); ++i)
     {
         //std::cout << small.fragment[i] << " " << big.fragment[i + offset] << endl;
-        if( small.fragment[i].compare(big.fragment[offset + i]) != 0 )
+        /*if( small.fragment[i].compare(big.fragment[offset + i]) != 0 )
         {
             are_equal = 0;
-        }
+        }*/
+        first.push_back( small.fragment[i] );
+        second.push_back( big.fragment[offset + i] );
     }
+
+    if(Perform_Comparison(&first, &second) == 1)//returns 1 if not clones, 0 if clones
+        are_equal = 0;//so return value is 0 if not clones
 
     return are_equal;
 }
@@ -287,7 +342,7 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                         int Found_Equal = 0;
                         while( ix < clusters->size() && Found_Equal != 1 )
                         {
-                            Found_Equal = Exemplars_Are_Equal( (*clusters)[ix].commits[0].files[0].exemplars[0], Exmplr );
+                            Found_Equal = Init_Exemplars_Are_Equal( (*clusters)[ix].commits[0].files[0].exemplars[0], Exmplr );
                             if(Found_Equal != 1) ++ix;//so that at the end we will have either ix = clusters.size() => no equal exemplars were found
                             //or ix value will be index of cluster, that contains equal exemplar
                         }

@@ -22,7 +22,7 @@ int Output_Of_Result(vector<Cluster>* Clusters, string BaseName)
         stringstream converter;
         converter << i + 1;
 
-        string Name = BaseName + "_" + converter.str() + ".txt";
+        string Name = BaseName + "_" + converter.str() + ".gv";
         ofstream output_file(Name.c_str(), ios_base::trunc);
         if(!output_file.is_open())
         {
@@ -50,12 +50,25 @@ int Output_Of_Result(vector<Cluster>* Clusters, string BaseName)
                     if(j == 0)
                     {
                         Commit_j += " | Original : \\n ";
-                        for(size_t k = 0; k < (*Clusters)[i].commits[0].files[0].exemplars[0].fragment.size(); ++k)
+                        /*for(size_t k = 0; k < (*Clusters)[i].commits[0].files[0].exemplars[0].fragment.size(); ++k)
                         {
                             Commit_j += (*Clusters)[i].commits[0].files[0].exemplars[0].fragment[k];
                             if(k < (*Clusters)[i].commits[0].files[0].exemplars[0].fragment.size() - 1)
                                 Commit_j += " \\n ";
-                        }
+                        }*/
+                        Commit_j += "File : ";
+                        converter.clear();
+                        converter.str(string());
+                        converter << (*Clusters)[i].commits[j].files[0].FilePath;
+                        Commit_j += converter.str() += " \\n Line : ";
+                        converter.clear();
+                        converter.str(string());
+                        converter << (*Clusters)[i].commits[j].files[0].exemplars[0].line;
+                        Commit_j += converter.str() + " \\n Size : ";
+                        converter.clear();
+                        converter.str(string());
+                        converter << (*Clusters)[i].commits[j].files[0].exemplars[0].fragment.size();
+                        Commit_j += converter.str();
                     }
                     Commit_j += "}\"];";
 
@@ -128,7 +141,7 @@ int Output_Of_Result(vector<Cluster>* Clusters, string BaseName)
         converter.str(string());
         converter << i + 1;
 
-        Command += BaseName + "_" + converter.str() + ".txt -o " + BaseName + "_" + converter.str() + ".png";
+        Command += BaseName + "_" + converter.str() + ".gv -o " + BaseName + "_" + converter.str() + ".png";
         if(exec_git_command(Command) == 1)
             return 1;
 

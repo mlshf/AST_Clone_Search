@@ -51,14 +51,14 @@ int What_Keyword(string str, string* output, vector<string>* id_and_num)//functi
             }
             else//checking if str contains an identifier
             {
-                if(!isalpha(str[0]))
+                if(!isalpha(str[0]) && str[0] != '_')
                 {
                     return 1;
                 }
 
                 for(size_t j = 1; j < str.size(); ++j)
                 {
-                    if( (isdigit(str[j]) || isalpha(str[j])) == 0 )
+                    if( (isdigit(str[j]) || isalpha(str[j]) || str[j] == '_') == 0 )
                     {
                         return 1;
                     }
@@ -86,6 +86,7 @@ int Parametrization(string in_str, string* output, vector<string>* id_and_num)
         ch = in_str[i];//with variable ch i read the given line in_str
         ++i;
         str_temp += ch;
+
 
         if(operators.find(ch) != string::npos)//if ch is an operator
         {
