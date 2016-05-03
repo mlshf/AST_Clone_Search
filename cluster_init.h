@@ -30,35 +30,35 @@ struct recursive_directory_range
 
 int string_found_C_extension(std::string path)
 {
-    bool Found = (path.find(".h", path.size() - 2) != std::string::npos);/*
-    Found = Found || (path.find(".H", path.size() - 2) != std::string::npos);
-    Found = Found || (path.find(".hh", path.size() - 3) != std::string::npos);
-    Found = Found || (path.find(".hpp", path.size() - 4) != std::string::npos);
-    Found = Found || (path.find(".h++", path.size() - 4) != std::string::npos);
-    Found = Found || (path.find(".hxx", path.size() - 4) != std::string::npos);*/
+    bool Found = (path.find(".h", path.size() - 2) != std::string::npos);
+    //Found = Found || (path.find(".H", path.size() - 2) != std::string::npos);
+    //Found = Found || (path.find(".hh", path.size() - 3) != std::string::npos);
+   // Found = Found || (path.find(".hpp", path.size() - 4) != std::string::npos);
+    //Found = Found || (path.find(".h++", path.size() - 4) != std::string::npos);
+   // Found = Found || (path.find(".hxx", path.size() - 4) != std::string::npos);
 
-    Found = Found || (path.find(".c", path.size() - 2) != std::string::npos);/*
-    Found = Found || (path.find(".C", path.size() - 2) != std::string::npos);
-    Found = Found || (path.find(".cc", path.size() - 3) != std::string::npos);
+    Found = Found || (path.find(".c", path.size() - 2) != std::string::npos);
+    //Found = Found || (path.find(".C", path.size() - 2) != std::string::npos);
+    //Found = Found || (path.find(".cc", path.size() - 3) != std::string::npos);
     Found = Found || (path.find(".cpp", path.size() - 4) != std::string::npos);
-    Found = Found || (path.find(".c++", path.size() - 4) != std::string::npos);
-    Found = Found || (path.find(".cxx", path.size() - 4) != std::string::npos);
+    //Found = Found || (path.find(".c++", path.size() - 4) != std::string::npos);
+   // Found = Found || (path.find(".cxx", path.size() - 4) != std::string::npos);
 
-    Found = Found || (path.find(".i", path.size() - 2) != std::string::npos);
-    Found = Found || (path.find(".I", path.size() - 2) != std::string::npos);
-    Found = Found || (path.find(".ii", path.size() - 3) != std::string::npos);
-    Found = Found || (path.find(".ipp", path.size() - 4) != std::string::npos);
-    Found = Found || (path.find(".i++", path.size() - 4) != std::string::npos);
-    Found = Found || (path.find(".inl", path.size() - 4) != std::string::npos);
-    Found = Found || (path.find(".ixx", path.size() - 4) != std::string::npos);
+   // Found = Found || (path.find(".i", path.size() - 2) != std::string::npos);
+   // Found = Found || (path.find(".I", path.size() - 2) != std::string::npos);
+   // Found = Found || (path.find(".ii", path.size() - 3) != std::string::npos);
+   // Found = Found || (path.find(".ipp", path.size() - 4) != std::string::npos);
+    //Found = Found || (path.find(".i++", path.size() - 4) != std::string::npos);
+   // Found = Found || (path.find(".inl", path.size() - 4) != std::string::npos);
+   // Found = Found || (path.find(".ixx", path.size() - 4) != std::string::npos);
 
-    Found = Found || (path.find(".t", path.size() - 2) != std::string::npos);
-    Found = Found || (path.find(".T", path.size() - 2) != std::string::npos);
-    Found = Found || (path.find(".tt", path.size() - 3) != std::string::npos);
-    Found = Found || (path.find(".tpp", path.size() - 4) != std::string::npos);
-    Found = Found || (path.find(".t++", path.size() - 4) != std::string::npos);
-    Found = Found || (path.find(".tpl", path.size() - 4) != std::string::npos);
-    Found = Found || (path.find(".txx", path.size() - 4) != std::string::npos);*/
+   // Found = Found || (path.find(".t", path.size() - 2) != std::string::npos);
+   // Found = Found || (path.find(".T", path.size() - 2) != std::string::npos);
+   // Found = Found || (path.find(".tt", path.size() - 3) != std::string::npos);
+   // Found = Found || (path.find(".tpp", path.size() - 4) != std::string::npos);
+   // Found = Found || (path.find(".t++", path.size() - 4) != std::string::npos);
+   // Found = Found || (path.find(".tpl", path.size() - 4) != std::string::npos);
+   // Found = Found || (path.find(".txx", path.size() - 4) != std::string::npos);
 
     return Found;
 }
@@ -143,12 +143,34 @@ void Delete_Extra_Spaces(std::string* Str)//deletes space symbols except \n and 
     if( isspace((*Str)[Str->size() - 1]) && (*Str)[Str->size() - 1] != '\n')//deleting last space symbol
         Str->erase(Str->begin() + Str->size() - 1);
 
-//serious doubt! deleting commets ath the end if line
-    if( Str->rfind(";//") != string::npos )
+//serious doubt! deleting commentaries at end of line
+    /*if( Str->rfind(";//") != string::npos )
         Str->erase( Str->rfind(";//") + 1,  Str->size() - Str->rfind(";//") - 1);
 
     if( Str->rfind("; //") != string::npos )
         Str->erase( Str->rfind("; //") + 1,  Str->size() - Str->rfind("; //") - 1);
+
+    if( Str->rfind(")//") != string::npos )
+        Str->erase( Str->rfind(")//") + 1,  Str->size() - Str->rfind(")//") - 1);
+
+    if( Str->rfind(") //") != string::npos )
+        Str->erase( Str->rfind(") //") + 1,  Str->size() - Str->rfind(") //") - 1);
+
+    if( Str->rfind("{//") != string::npos )
+        Str->erase( Str->rfind("{//") + 1,  Str->size() - Str->rfind("{//") - 1);
+
+    if( Str->rfind("{ //") != string::npos )
+        Str->erase( Str->rfind("{ //") + 1,  Str->size() - Str->rfind("{ //") - 1);
+
+    if( Str->rfind("}//") != string::npos )
+        Str->erase( Str->rfind("}//") + 1,  Str->size() - Str->rfind("}//") - 1);
+
+    if( Str->rfind("} //") != string::npos )
+        Str->erase( Str->rfind("} //") + 1,  Str->size() - Str->rfind("} //") - 1);*/
+
+    if( Str->size() >= 2 && (*Str)[0] != '/')
+        if( Str->find("//") != string::npos )
+            Str->erase( Str->rfind("//") + 1,  Str->size() - Str->rfind("//") - 1 );
 
     //deleting figure braces at the end and beginning of the string - they can be located at different lines, but fragment still can be clones
     if((*Str)[Str->size() - 1] == '}')
@@ -165,13 +187,10 @@ void Delete_Extra_Spaces(std::string* Str)//deletes space symbols except \n and 
 
 int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared)// returns 1 if clones, 0 if not
 {
-    int offset = 0;/* = ((int)Original.fragment.size() - (int)Compared.fragment.size()) / 2;
-    Exemplar small = Compared, big = Original;*/
+    int offset = 0;
 
     if(Original.fragment.size() <= Compared.fragment.size())//if original is included in compared
-    {/*
-        small = Original;
-        big = Compared;*/
+    {
         offset = ( (int)Compared.fragment.size() - (int)Original.fragment.size() ) / 2;
     }
     else if( Compared.fragment.size() < Original.fragment.size() )
@@ -180,16 +199,10 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared)// returns 1 if clo
     }
 
     int are_equal = 1;//return value, 1 if clones
-    //offset = abs(offset);
     size_t i = 0;
     vector<string> first, second;
     for(; i < Original.fragment.size(); ++i)
     {
-        //std::cout << small.fragment[i] << " " << big.fragment[i + offset] << endl;
-        /*if( small.fragment[i].compare(big.fragment[offset + i]) != 0 )
-        {
-            are_equal = 0;
-        }*/
         first.push_back( Original.fragment[i] );
         second.push_back( Compared.fragment[offset + i] );
     }
@@ -264,61 +277,52 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
             line++;
             Delete_Extra_Spaces(&S_temp);
 
+            /*if( S_temp.find("//") != string::npos )
+                cout << (*Paths)[i] << " : " << S_temp << " , " << S_temp[0] << endl;*/
+
             if(!in_file.eof() && S_temp.size() > 2 && S_temp[0] == '/' && S_temp[1] == '/' && S_temp.find(WeaknessMarker.c_str()) != std::string::npos)
             {
                 Exemplar Exmplr;
                 Exmplr.line = line + 1;
 
-                int j = 0, prev_size = previous.size()/*, k = 0*/;//prev_size - size of previous[] before adding string with weakness
-                //k counts lines that cone AFTER line with weakness that are added to the previous[]
-                while(j <= prev_size && !in_file.eof())
-                {
-                    /*
-                        char str_t[256];
-                        fscanf(in_file, "%[^\n]\n", str_t);
+                    int j = 0, prev_size = previous.size()/*, k = 0*/;//prev_size - size of previous[] before adding string with weakness
+                    //k counts lines that cone AFTER line with weakness that are added to the previous[]
+                    while(j <= prev_size && !in_file.eof())
+                    {
+                        /*
+                            char str_t[256];
+                            fscanf(in_file, "%[^\n]\n", str_t);
 
-                        string S_temp_2(str_t);*/
-                        std::string S_temp_2;
-                        std::getline(in_file, S_temp_2);
-                        line++;
-                        Delete_Extra_Spaces(&S_temp_2);
+                            string S_temp_2(str_t);*/
+                            std::string S_temp_2;
+                            std::getline(in_file, S_temp_2);
+                            line++;
+                            Delete_Extra_Spaces(&S_temp_2);
 
-                        if(!in_file.eof() && Is_String_Not_Empty(S_temp_2) == 1 && S_temp_2[0] != '/' && S_temp_2[1] != '/')
-                        {
-                            previous.push_back(S_temp_2);
-                            //if(j != 0)//because k counts lines after line with weakness
-                                //k++;
-                            j++;
-                        }
-                    //j++;
-                }
+                            if(!in_file.eof() && Is_String_Not_Empty(S_temp_2) == 1 && S_temp_2[0] != '/' && S_temp_2[1] != '/')
+                            {
+                                previous.push_back(S_temp_2);
+                                //if(j != 0)//because k counts lines after line with weakness
+                                    //k++;
+                                j++;
+                            }
+                        //j++;
+                    }
 
+                    if(j > 0)
+                        j--;//1because j shows the number of line that would have been read if cycle hadn't stopped
 
-                if(j > 0)
-                    j--;//1because j shows the number of line that would have been read if cycle hadn't stopped
+                    if(j < prev_size)
+                    {
+                        previous.erase(previous.begin(), previous.begin() + prev_size - j);
+                    }
 
-                if(j < prev_size)
-                {
-                    previous.erase(previous.begin(), previous.begin() + prev_size - j);
-                }
+                    //AT THIS POINT I HAVE A FRAGMENT OF SIZE 2*FragmentSize + 1 or less THAT CONTAINS WEAKNESS
+                    Exmplr.fragment = previous;
 
-                //AT THIS POINT I HAVE A FRAGMENT OF SIZE 2*FragmentSize + 1 or less THAT CONTAINS WEAKNESS
-                Exmplr.fragment = previous;
-//debug printing
-/*
-                if(Exmplr.fragment.size() > 0)
-                    std::cout << "DIRECTORY : "<< (*Paths)[i] << " ; MARKER : " << S_temp << " ; FRAGMENT : " << std::endl;
+                    if(previous.size() > FragmentSize)
+                        previous.erase(previous.begin(), previous.begin() + previous.size() - FragmentSize);
 
-                for(size_t j = 0; j < Exmplr.fragment.size(); ++j)
-                {
-                    std::cout << Exmplr.fragment[j] << " " << Exmplr.line << std::endl;
-                    if(j == Exmplr.fragment.size() - 1)
-                        std::cout << std::endl;
-                }
-*/
-
-                if(previous.size() > FragmentSize)
-                    previous.erase(previous.begin(), previous.begin() + previous.size() - FragmentSize);
 
                 if(Exmplr.fragment.size() != 0)//because empty weaknesses are useless
                 {
@@ -425,7 +429,7 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                 {
                     previous.push_back(S_temp);
                 }
-                else
+                else if (previous.size() != 0)
                 {
                     previous.erase(previous.begin());
                     previous.push_back(S_temp);

@@ -154,13 +154,14 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                     string S_temp;
                     getline(in_file, S_temp);
                     line++;
-                    Delete_Extra_Spaces(&S_temp);
 
+                    Delete_Extra_Spaces(&S_temp);
                     vector<size_t> Need_to_Compare;//will contain indices of clusters, that have marked string similar to current string
-                    if(S_temp.size() >= 2 && S_temp[0] == '/' && S_temp[1] == '/')
+                    if( (S_temp.size() >= 2 && S_temp[0] == '/' && S_temp[1] == '/') || (S_temp.size() >= 1 && S_temp[0] == '#' ) )
                         S_temp = " ";
                     else
                         Find_Indices_of_Clusters(S_temp, Clusters, &Need_to_Compare);
+
 
                     if(!in_file.eof() && Need_to_Compare.size() > 0)//checking whether current fragment is a clone is not pointless only if current string is a clone
                     {
@@ -193,18 +194,6 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
 
                         //AT THIS POINT I HAVE A FRAGMENT OF SIZE 2*FragmentSize + 1 or less THAT CONTAINS WEAKNESS
                         Exmplr.fragment = previous;
-        //debug printing
-/*
-                        if(Exmplr.fragment.size() > 0)
-                            std::cout << "DIRECTORY : "<< Paths[k] << " ; FRAGMENT : " << std::endl;
-
-                        for(size_t j = 0; j < Exmplr.fragment.size(); ++j)
-                        {
-                            std::cout << Exmplr.fragment[j] << " " << Exmplr.line << std::endl;
-                            if(j == Exmplr.fragment.size() - 1)
-                                std::cout << std::endl;
-                        }
-*/
 
                         if(previous.size() > FragmentSize)
                             previous.erase(previous.begin(), previous.begin() + previous.size() - FragmentSize);
@@ -272,18 +261,25 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                         }
                     }
                     else
-                    if(!in_file.eof() && Is_String_Not_Empty(S_temp) == 1)
                     {
-                        if(previous.size() < FragmentSize)
+                        if(!in_file.eof() && Is_String_Not_Empty(S_temp) == 1)
                         {
-                            previous.push_back(S_temp);
-                        }
-                        else
-                        {
-                            previous.erase(previous.begin());
-                            previous.push_back(S_temp);
+                            if(previous.size() < FragmentSize)
+                            {
+                                previous.push_back(S_temp);
+                            }
+                            else if(previous.size() != 0)
+                            {
+                                previous.erase(previous.begin());
+                                previous.push_back(S_temp);
+                            }
                         }
                     }
+
+                    //for(size_t Y = 0; Y < previous.size(); ++Y)
+                       // cout << previous[Y] << endl;
+                    //cout << "--------------------------------------------" << endl;
+
                 }
 
                 in_file.close();

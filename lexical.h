@@ -77,7 +77,7 @@ int What_Keyword(string str, string* output, vector<string>* id_and_num)//functi
 int Parametrization(string in_str, string* output, vector<string>* id_and_num)
 {
     char ch;
-    string  separators = " \t\n\v\f\r,;(){}[]#\"<>" , operators = "!%^&*-+=~|.<>/?:";//vector serparators contains all symbols that can separate tokens from each other
+    string  separators = " \t\n\v\f\r,;(){}[]#\"'" , operators = "!%^&*-+=~|.<>/?:";//vector serparators contains all symbols that can separate tokens from each other
     //vector operators contains all operators of C language
 	size_t i = 0;
 	string str_temp;
@@ -121,14 +121,27 @@ int Parametrization(string in_str, string* output, vector<string>* id_and_num)
                 if(ch == '#')//special case - include, define, ifndef and etc.
                 {
                     str_temp += ch;
-                    while(ch != '\n')
+                    while(ch != '>' && ch != '"' && in_str[i] != '\n')
                     {
                         ch = in_str[i];
                         str_temp += ch;
                         i++;
                     }
-                    if(str_temp[str_temp.size() - 1] == '\n' && str_temp.size() != 0)
-                        str_temp.erase(str_temp.end() - 1);
+                    if(ch == '"')
+                    {
+                        ch = in_str[i];
+                        str_temp += ch;
+                        i++;
+                        while(ch != '"')
+                        {
+                            ch = in_str[i];
+                            str_temp += ch;
+                            i++;
+                        }
+                    }
+
+                    //if(str_temp[str_temp.size() - 1] == '\n' && str_temp.size() != 0)
+                        //str_temp.erase(str_temp.end() - 1);
                     //cout << str_temp << " is something with # at the beginning" << endl;
 
                     *output += str_temp;
@@ -154,50 +167,54 @@ int Parametrization(string in_str, string* output, vector<string>* id_and_num)
 
                         str_temp.clear();
                     }
-                    else if(str_temp.size() != 0)
+                    else
                     {
-                        while(isspace(ch))//ignoring space symbols
-                        {
-                            ch = in_str[i];
-                            ++i;
-                        }
 
-                        if(ch == '(')//found a function
+                        if(ch == '\'')//special case - constant char string
                         {
-                            //cout << str_temp << " is a function" << endl;
+                            str_temp += ch;
+                            do
+                            {
+                                ch = in_str[i];
+                                i++;
+                                str_temp += ch;
+
+                            }while(ch != '\'');
+
+                            //cout << str_temp << " is a character" << endl;
 
                             *output += str_temp;
 
+                            str_temp.clear();
                         }
                         else
                         {
-                            if(ch == '{')//found a structure
-                            {
-                                //cout << str_temp << " is a structure" << endl;
 
-                                *output += str_temp;
-
-                            }
-                            else
                             if(str_temp.size() != 0)
                             {
-                                if(What_Keyword(str_temp, output, id_and_num) == 1)
+                                while(isspace(ch))//ignoring space symbols
                                 {
-                                    cout << str_temp << " is not a C lexeme..." << endl;
-                                    return 1;
+                                    ch = in_str[i];
+                                    ++i;
                                 }
-                            }
-                        }
 
-                        str_temp.clear();
-
-                        if( separators.find(ch) == string::npos )//as we have read a little more we have to find out where we are now
-                        {
-                            if(operators.find(ch) != string::npos)
-                            {
-                                if(str_temp.size() != 0)
+                                if(ch == '(')//found a function
                                 {
-                                    str_temp.erase(str_temp.end() - 1);
+                                    //cout << str_temp << " is a function" << endl;
+
+                                    *output += str_temp;
+
+                                }
+                                else
+                                {
+                                    if(ch == '{')//found a structure
+                                    {
+                                        //cout << str_temp << " is a structure" << endl;
+
+                                        *output += str_temp;
+
+                                    }
+                                    else
                                     if(str_temp.size() != 0)
                                     {
                                         if(What_Keyword(str_temp, output, id_and_num) == 1)
@@ -205,33 +222,56 @@ int Parametrization(string in_str, string* output, vector<string>* id_and_num)
                                             cout << str_temp << " is not a C lexeme..." << endl;
                                             return 1;
                                         }
-                                        str_temp.clear();
                                     }
                                 }
-                                //cout << ch << " is an operator" << endl;
 
-                                string temp(1, ch);
-                                *output += temp;
+                                str_temp.clear();
 
+                                if( separators.find(ch) == string::npos )//as we have read a little more we have to find out where we are now
+                                {
+                                    if(operators.find(ch) != string::npos)
+                                    {
+                                        if(str_temp.size() != 0)
+                                        {
+                                            str_temp.erase(str_temp.end() - 1);
+                                            if(str_temp.size() != 0)
+                                            {
+                                                if(What_Keyword(str_temp, output, id_and_num) == 1)
+                                                {
+                                                    cout << str_temp << " is not a C lexeme..." << endl;
+                                                    return 1;
+                                                }
+                                                str_temp.clear();
+                                            }
+                                        }
+                                        //cout << ch << " is an operator" << endl;
+
+                                        string temp(1, ch);
+                                        *output += temp;
+
+                                    }
+                                    else
+                                    {
+                                        str_temp += ch;
+                                    }
+                                }
+                                else
+                                {
+                                    string temp(1, ch);
+                                    *output += temp;
+                                }
                             }
                             else
                             {
-                                str_temp += ch;
+                                if(!isspace(ch))
+                                {
+                                    string temp(1, ch);
+                                    *output += temp;
+                                }
                             }
+
                         }
-                        else
-                        {
-                            string temp(1, ch);
-                            *output += temp;
-                        }
-                    }
-                    else
-                    {
-                        if(!isspace(ch))
-                        {
-                            string temp(1, ch);
-                            *output += temp;
-                        }
+
                     }
                 }
             }

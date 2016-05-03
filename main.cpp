@@ -125,7 +125,6 @@ if(argc == 5)
         }
 
         Vector_of_Paths.clear();//we no longer need the resources
-
     }
 
     if(Analyze_History(&Commit_Levels, &Clusters, FragmentSize) == 1)
