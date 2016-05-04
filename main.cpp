@@ -49,6 +49,15 @@ if(argc == 5)
     stringstream S_FragmentSize(argv[2]);
     size_t FragmentSize;
     S_FragmentSize >> FragmentSize;
+
+    if(FragmentSize < 0)
+    {
+        cout << "Second parameter (<SIZE>) should be an integer value greater than 0, or equal." << endl;
+        cout << endl;
+        exec_git_command("git checkout master");
+        return 1;
+    }
+
     string WeaknessMarker(argv[3]);
 
     cout <<"#GIT COMMANDS EMULATION..." << endl << endl;

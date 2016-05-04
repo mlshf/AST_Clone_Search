@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1462266732 source:/home/nikita/Course_Realization/main.cpp
+1462372478 source:/home/nikita/Course_Realization/main.cpp
 	<iostream>
 	<sstream>
 	<stdio.h>
@@ -33,7 +33,7 @@
 	<strings.h>
 	<vector>
 
-1462273949 source:/home/nikita/Course_Realization/cluster_init.h
+1462276760 source:/home/nikita/Course_Realization/cluster_init.h
 	"cluster.h"
 	<boost/filesystem.hpp>
 	<iostream>
@@ -83,7 +83,7 @@
 	<strings.h>
 	<vector>
 
-1462275836 source:/home/nikita/Course_Realization/history_analysis.h
+1462276780 source:/home/nikita/Course_Realization/history_analysis.h
 	"cluster.h"
 	"cluster_init.h"
 	"git_exec.h"
