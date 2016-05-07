@@ -1,5 +1,6 @@
 # Course_Realization
 Uses Boost library.
+Standard: C++11.
 Uses GraphViz (dot).
 Uses popen(...) function => Works on Linux-like systems. 
 Tested on Ubuntu. 
