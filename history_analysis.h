@@ -211,9 +211,10 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                     //or ix value will be index of cluster, that contains equal exemplar
                                 }
 
-                                ix = Need_to_Compare[ix];//now ix contains not index of element of Need_to_Compare that contains index of needed cluster, but index of needed cluster
+                                if(ix != Need_to_Compare.size())
+                                    ix = Need_to_Compare[ix];//now ix contains not index of element of Need_to_Compare that contains index of needed cluster, but index of needed cluster
 
-                                if(Found_Equal_Exemplar == 1)//we have found equal exemplar
+                                if(Found_Equal_Exemplar == 1 && ix != Need_to_Compare.size())//we have found equal exemplar
                                 {
                                     int Commit_Exists = 0;//checking if clusters->[ix] contains commit with SHA1 = (*Commit_Levels)[i].SHA1_of_commits[j]
                                     int index_of_last_commit = (*Clusters)[ix].commits.size();//contains index of last commit in (*Clusters)[ix]

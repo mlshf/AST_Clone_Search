@@ -184,7 +184,7 @@ void Delete_Extra_Spaces(std::string* Str)//deletes space symbols except \n and 
 
     return;
 }
-
+/*
 int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared)// returns 1 if clones, 0 if not
 {
     int offset = 0;
@@ -211,10 +211,10 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared)// returns 1 if clo
         are_equal = 0;//so return value is 0 if not clones
 
     return are_equal;
-}
+}*/
 
 //this function is needed because when initializing compared can be a part of original
-int Init_Exemplars_Are_Equal(Exemplar Original, Exemplar Compared)// returns 1 if clones, 0 if not
+int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared)// returns 1 if clones, 0 if not
 {
     int offset  = ((int)Original.fragment.size() - (int)Compared.fragment.size()) / 2;
     Exemplar small = Compared, big = Original;
@@ -231,11 +231,6 @@ int Init_Exemplars_Are_Equal(Exemplar Original, Exemplar Compared)// returns 1 i
     vector<string> first, second;
     for(; i < small.fragment.size(); ++i)
     {
-        //std::cout << small.fragment[i] << " " << big.fragment[i + offset] << endl;
-        /*if( small.fragment[i].compare(big.fragment[offset + i]) != 0 )
-        {
-            are_equal = 0;
-        }*/
         first.push_back( small.fragment[i] );
         second.push_back( big.fragment[offset + i] );
     }
@@ -346,7 +341,7 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                         int Found_Equal = 0;
                         while( ix < clusters->size() && Found_Equal != 1 )
                         {
-                            Found_Equal = Init_Exemplars_Are_Equal( (*clusters)[ix].commits[0].files[0].exemplars[0], Exmplr );
+                            Found_Equal = Exemplars_Are_Equal( (*clusters)[ix].commits[0].files[0].exemplars[0], Exmplr );
                             if(Found_Equal != 1) ++ix;//so that at the end we will have either ix = clusters.size() => no equal exemplars were found
                             //or ix value will be index of cluster, that contains equal exemplar
                         }

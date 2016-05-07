@@ -71,7 +71,6 @@ if(argc == 5)
         return 1;
     }
 
-
     cout << "SHA1 hashes of commits used for initializing are:" << endl;
     for(size_t i = 0; i < Start_SHA1.size(); ++i)
         cout << Start_SHA1[i] << endl;
@@ -86,13 +85,6 @@ if(argc == 5)
     string S_SHA1(Start_SHA1[0]);
     cout << "Start commit's SHA1 hash is: " << S_SHA1 << endl;
 
-/*
-    vector<string> Vector_SHA1;
-    cout << Vector_SHA1.size() << endl;
-
-    exec_git_getsha1(S_SHA1, &Vector_SHA1);
-    cout << Vector_SHA1.size() << endl;
-*/
     vector<Commit_Level> Commit_Levels;
     Commit_Level Level0;
     Level0.level = 0;
@@ -176,9 +168,6 @@ if(argc == 5)
 
     cout <<"#PROCESS IS OVER..." << endl;
 
-    /*for(size_t i = 0; i < Start_SHA1.size(); ++ i)
-        cout << Start_SHA1[i] << endl;*/
-
 }
 else
 {
@@ -186,7 +175,7 @@ else
     cout << "For example: ../Course_Realization/bin/Debug/Course_Realization '../sha1.txt' 3 '#_Weakness_Threat_#' '../output'" << endl;;
 }
     cout << endl;
-    exec_git_command("git checkout master");
+    //exec_git_command("git checkout master");
 
     return 0;
 }
