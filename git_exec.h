@@ -8,13 +8,14 @@
 #include <string.h>
 #include <strings.h>
 #include <vector>
+#include <stddef.h>
 
 using namespace std;
 
 int exec_git_command(string S)//It just executes command and prints the result
 {
     FILE* in;
-    char buff[512];
+    //char buff[512];
 
     cout << S << endl << endl;
 
@@ -24,14 +25,20 @@ int exec_git_command(string S)//It just executes command and prints the result
         return 1;
     }
 
-    while(fgets(buff, sizeof(buff), in) != NULL)
+    char * line = NULL;
+    size_t len = 0;
+    ssize_t read;
+
+    while ((read = getline(&line, &len, in)) != -1)
     {
-        cout << buff;
+        cout << line;
     }
 
     cout << endl;
 
     pclose(in);
+    if (line)
+        free(line);
 
     return 0;
 }
@@ -74,25 +81,23 @@ int exec_git_getsha1(string S, vector<string>* VS)//It executes command and read
         return 1;
     }
 
-    while(!feof(in))
+    char* line = NULL;
+    size_t len = 0;
+    ssize_t read;
+
+    while ((read = getline(&line, &len, in)) != -1)
     {
+        string S_temp(line);
+        if(S_temp.size() > 40)
+            S_temp.erase(40);
+        cout << S_temp << endl;
+        VS->push_back(S_temp);
 
-        char str[40];
-        //fscanf(in, "%[^\n]\n", str);
-        if(fgets(str, 41, in) != NULL)
-        {
-
-            string S_temp(str);
-            if(Is_Char_String_Not_Empty(str) == 1 && S_temp.size() == 40 && !feof(in))//only add S_temp if it contains SHA1 of a commit-descendant for commit S
-            {
-                VS->push_back(S_temp);
-                cout << S_temp << endl;
-            }
-
-        }
     }
 
     cout << endl;
+    if (line)
+        free(line);
 
     pclose(in);
 

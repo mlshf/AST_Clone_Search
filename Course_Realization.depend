@@ -1,6 +1,7 @@
 # depslib dependency file v1.0
-1461413563 source:/home/nikita/Course_Realization/main.cpp
+1462605682 source:/home/nikita/Course_Realization/main.cpp
 	<iostream>
+	<sstream>
 	<stdio.h>
 	<stdlib.h>
 	<string>
@@ -11,8 +12,10 @@
 	"cluster_init.h"
 	"cluster.h"
 	"history_analysis.h"
+	<cctype>
+	"output.h"
 
-1460834990 /home/nikita/Course_Realization/git_exec.h
+1462605302 /home/nikita/Course_Realization/git_exec.h
 	<iostream>
 	<stdio.h>
 	<stdlib.h>
@@ -20,8 +23,9 @@
 	<string.h>
 	<strings.h>
 	<vector>
+	<stddef.h>
 
-1460834990 source:/home/nikita/Course_Realization/git_exec.h
+1462605302 source:/home/nikita/Course_Realization/git_exec.h
 	<iostream>
 	<stdio.h>
 	<stdlib.h>
@@ -29,8 +33,9 @@
 	<string.h>
 	<strings.h>
 	<vector>
+	<stddef.h>
 
-1461403842 source:/home/nikita/Course_Realization/cluster_init.h
+1462602367 source:/home/nikita/Course_Realization/cluster_init.h
 	"cluster.h"
 	<boost/filesystem.hpp>
 	<iostream>
@@ -44,8 +49,9 @@
 	<cctype>
 	<cmath>
 	"git_exec.h"
+	"lexical.h"
 
-1461403842 /home/nikita/Course_Realization/cluster_init.h
+1462602367 /home/nikita/Course_Realization/cluster_init.h
 	"cluster.h"
 	<boost/filesystem.hpp>
 	<iostream>
@@ -59,6 +65,7 @@
 	<cctype>
 	<cmath>
 	"git_exec.h"
+	"lexical.h"
 
 1460662061 source:/home/nikita/Course_Realization/cluster.h
 	<iostream>
@@ -78,7 +85,7 @@
 	<strings.h>
 	<vector>
 
-1461413642 source:/home/nikita/Course_Realization/history_analysis.h
+1462602390 source:/home/nikita/Course_Realization/history_analysis.h
 	"cluster.h"
 	"cluster_init.h"
 	"git_exec.h"
@@ -93,8 +100,9 @@
 	<vector>
 	<cctype>
 	<cmath>
+	"lexical.h"
 
-1461413642 /home/nikita/Course_Realization/history_analysis.h
+1462602390 /home/nikita/Course_Realization/history_analysis.h
 	"cluster.h"
 	"cluster_init.h"
 	"git_exec.h"
@@ -109,6 +117,7 @@
 	<vector>
 	<cctype>
 	<cmath>
+	"lexical.h"
 
 1461413642 source:/home/nikita/C_R_temp/history_analysis.h
 	"cluster.h"
@@ -220,4 +229,29 @@
 	<vector>
 	<cctype>
 	<cmath>
+
+1462186270 /home/nikita/Course_Realization/output.h
+	<iostream>
+	<sstream>
+	<stdio.h>
+	<stdlib.h>
+	<string>
+	<string.h>
+	<strings.h>
+	<vector>
+	"git_exec.h"
+	"cluster_init.h"
+	"cluster.h"
+	"history_analysis.h"
+	<cctype>
+
+1462274729 /home/nikita/Course_Realization/lexical.h
+	<stdio.h>
+	<ctype.h>
+	<string.h>
+	<stdio.h>
+	<stdlib.h>
+	<vector>
+	<string>
+	<iostream>
 

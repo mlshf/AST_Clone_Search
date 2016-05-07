@@ -15,6 +15,7 @@
 #include <vector>
 #include <cctype>
 #include <cmath>
+#include "lexical.h"
 
 using namespace std;
 
@@ -38,7 +39,7 @@ int Are_There_Equal_Strings(vector<string>* VS, string S)
 //creates vector of levels of commits
 //level 0 - starting commit
 //level i+1 - level of commits-descendants of commits from level i
-int Fill_Commit_Levels(vector<Commit_Level>* Commit_Levels)
+int Fill_Commit_Levels(vector<Commit_Level>* Commit_Levels, vector<string>* Start_SHA1)
 {
     size_t i = 1;//number of current level; 1 at the beginning of the process
     int unchecked_commits = (int)(*Commit_Levels)[i - 1].SHA1_of_commits.size();//as we work we have two sets of commits
@@ -76,15 +77,45 @@ int Fill_Commit_Levels(vector<Commit_Level>* Commit_Levels)
 
     }
 
+    //now we need to exclude commits that are listed in file argv[1] from Commit_Levels, because we consider them already processed
+    for(size_t i = 0; i < Commit_Levels->size(); ++i)
+    {
+        size_t j = 0;
+        while( j < (*Commit_Levels)[i].SHA1_of_commits.size() )
+        {
+            int Not_Initial = 1;
+            for(size_t k = 1; k < Start_SHA1->size() && Not_Initial == 1; ++k)
+            {
+                if( (*Start_SHA1)[k].compare( (*Commit_Levels)[i].SHA1_of_commits[j] ) == 0 )
+                    Not_Initial = 0;
+            }
+
+            if(Not_Initial == 0)
+            {
+                (*Commit_Levels)[i].SHA1_of_commits.erase( (*Commit_Levels)[i].SHA1_of_commits.begin() + j );
+            }
+            else
+                ++j;
+        }
+    }
+
     return 0;
 }
 
 void Find_Indices_of_Clusters(string S_compared, vector<Cluster>* Clusters, vector<size_t>* Need_to_Compare)//returns number of cluster that contains similar original string or -1 otherwise
 {
+    vector<string> first;
+    first.push_back(S_compared);
+
     for(size_t i = 0; i < Clusters->size(); ++i)
     {
         int j = (*Clusters)[i].commits[0].files[0].exemplars[0].fragment.size() / 2;//because size is always 2 * FragmentSize + 1, middle string index is j
-        if(S_compared.compare( (*Clusters)[i].commits[0].files[0].exemplars[0].fragment[j] ) == 0)
+        /*if(S_compared.compare( (*Clusters)[i].commits[0].files[0].exemplars[0].fragment[j] ) == 0)
+            Need_to_Compare->push_back(i);*/
+        vector<string> second;
+        second.push_back( (*Clusters)[i].commits[0].files[0].exemplars[0].fragment[j] );
+
+        if(Perform_Comparison(&first, &second) == 0)
             Need_to_Compare->push_back(i);
     }
     return;
@@ -123,13 +154,14 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                     string S_temp;
                     getline(in_file, S_temp);
                     line++;
-                    Delete_Extra_Spaces(&S_temp);
 
+                    Delete_Extra_Spaces(&S_temp);
                     vector<size_t> Need_to_Compare;//will contain indices of clusters, that have marked string similar to current string
-                    if(S_temp.size() >= 2 && S_temp[0] == '/' && S_temp[1] == '/')
+                    if( (S_temp.size() >= 2 && S_temp[0] == '/' && S_temp[1] == '/') || (S_temp.size() >= 1 && S_temp[0] == '#' ) )
                         S_temp = " ";
                     else
                         Find_Indices_of_Clusters(S_temp, Clusters, &Need_to_Compare);
+
 
                     if(!in_file.eof() && Need_to_Compare.size() > 0)//checking whether current fragment is a clone is not pointless only if current string is a clone
                     {
@@ -162,18 +194,6 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
 
                         //AT THIS POINT I HAVE A FRAGMENT OF SIZE 2*FragmentSize + 1 or less THAT CONTAINS WEAKNESS
                         Exmplr.fragment = previous;
-        //debug printing
-/*
-                        if(Exmplr.fragment.size() > 0)
-                            std::cout << "DIRECTORY : "<< Paths[k] << " ; FRAGMENT : " << std::endl;
-
-                        for(size_t j = 0; j < Exmplr.fragment.size(); ++j)
-                        {
-                            std::cout << Exmplr.fragment[j] << " " << Exmplr.line << std::endl;
-                            if(j == Exmplr.fragment.size() - 1)
-                                std::cout << std::endl;
-                        }
-*/
 
                         if(previous.size() > FragmentSize)
                             previous.erase(previous.begin(), previous.begin() + previous.size() - FragmentSize);
@@ -191,9 +211,10 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                     //or ix value will be index of cluster, that contains equal exemplar
                                 }
 
-                                ix = Need_to_Compare[ix];//now ix contains not index of element of Need_to_Compare that contains index of needed cluster, but index of needed cluster
+                                if(ix != Need_to_Compare.size())
+                                    ix = Need_to_Compare[ix];//now ix contains not index of element of Need_to_Compare that contains index of needed cluster, but index of needed cluster
 
-                                if(Found_Equal_Exemplar == 1)//we have found equal exemplar
+                                if(Found_Equal_Exemplar == 1 && ix != Need_to_Compare.size())//we have found equal exemplar
                                 {
                                     int Commit_Exists = 0;//checking if clusters->[ix] contains commit with SHA1 = (*Commit_Levels)[i].SHA1_of_commits[j]
                                     int index_of_last_commit = (*Clusters)[ix].commits.size();//contains index of last commit in (*Clusters)[ix]
@@ -241,18 +262,25 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                         }
                     }
                     else
-                    if(!in_file.eof() && Is_String_Not_Empty(S_temp) == 1)
                     {
-                        if(previous.size() < FragmentSize)
+                        if(!in_file.eof() && Is_String_Not_Empty(S_temp) == 1)
                         {
-                            previous.push_back(S_temp);
-                        }
-                        else
-                        {
-                            previous.erase(previous.begin());
-                            previous.push_back(S_temp);
+                            if(previous.size() < FragmentSize)
+                            {
+                                previous.push_back(S_temp);
+                            }
+                            else if(previous.size() != 0)
+                            {
+                                previous.erase(previous.begin());
+                                previous.push_back(S_temp);
+                            }
                         }
                     }
+
+                    //for(size_t Y = 0; Y < previous.size(); ++Y)
+                       // cout << previous[Y] << endl;
+                    //cout << "--------------------------------------------" << endl;
+
                 }
 
                 in_file.close();

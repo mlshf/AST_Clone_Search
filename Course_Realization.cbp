@@ -28,9 +28,12 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-std=c++11" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add option="-lboost_system" />
+					<Add option="-lboost_filesystem" />
 				</Linker>
 			</Target>
 		</Build>
@@ -50,7 +53,15 @@
 		<Unit filename="history_analysis.h">
 			<Option compile="1" />
 		</Unit>
+		<Unit filename="lexical.h">
+			<Option compile="1" />
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
 		<Unit filename="main.cpp" />
+		<Unit filename="output.h">
+			<Option compile="1" />
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
 		<Extensions>
 			<code_completion />
 			<debugger />
