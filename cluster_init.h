@@ -40,7 +40,7 @@ int string_found_C_extension(std::string path)
     Found = Found || (path.find(".c", path.size() - 2) != std::string::npos);
     //Found = Found || (path.find(".C", path.size() - 2) != std::string::npos);
     //Found = Found || (path.find(".cc", path.size() - 3) != std::string::npos);
-    Found = Found || (path.find(".cpp", path.size() - 4) != std::string::npos);
+    //Found = Found || (path.find(".cpp", path.size() - 4) != std::string::npos);
     //Found = Found || (path.find(".c++", path.size() - 4) != std::string::npos);
    // Found = Found || (path.find(".cxx", path.size() - 4) != std::string::npos);
 
