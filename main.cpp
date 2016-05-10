@@ -175,7 +175,7 @@ else
     cout << "For example: ../Course_Realization/bin/Debug/Course_Realization '../sha1.txt' 3 '#_Weakness_Threat_#' '../output'" << endl;;
 }
     cout << endl;
-    //exec_git_command("git checkout master");
+    exec_git_command("git checkout master");
 
     return 0;
 }
