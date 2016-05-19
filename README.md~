@@ -1,6 +1,0 @@
-# Course_Realization
-Uses Boost library.
-Uses GraphViz (dot).
-Uses popen(...) function => Works on Linux-like systems. 
-Tested on Ubuntu. 
-
