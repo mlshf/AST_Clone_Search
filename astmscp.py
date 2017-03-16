@@ -170,9 +170,12 @@ def if_decl(Line, parent_node):
             dim_qualfs.name += "static "
         # An AST for initialization list of array
         n_initlist = Node("InitList", parent=n)
-        if not "None" in str(Line.init):
+        if "InitList" in str(Line.init):
             for initializer in Line.init.exprs:
                 ast_value(initializer, n_initlist)
+        elif not "None" in str(Line.init):
+            n_initlist.name = "Init"
+            ast_value(Line.init, n_initlist)
     # variable is being declared
     elif "TypeDecl" in str(Line.type):
         n = Node("TypeDecl", parent=parent_node)
@@ -182,13 +185,12 @@ def if_decl(Line, parent_node):
         type_decl(Line.type, n)
         # an AST for initializier of a declared variable
         n_init = Node("Init", parent=n)
-        if "ID" in str(Line.init):
-            print(Line.init)
-            ast_value(Line.init, n_init)
-        elif "InitList" in str(Line.init):
+        if "InitList" in str(Line.init):
             n_init.name = "InitList"
             for initializer in Line.init.exprs:
                 ast_value(initializer, n_init)
+        elif not "None" in str(Line.init):
+                ast_value(Line.init, n_init)
     # enum declaration
     elif "Enum" in str(Line.type):
         n = Node("Enum", parent=parent_node)
@@ -213,13 +215,12 @@ def if_decl(Line, parent_node):
             type_decl(Line.type.type, n)
         # an AST for initializier of a declared variable
         n_init = Node("Init", parent=n)
-        if "ID" in str(Line.init):
-            print(Line.init)
-            ast_value(Line.init, n_init)
-        elif "InitList" in str(Line.init):
+        if "InitList" in str(Line.init):
             n_init.name = "InitList"
             for initializer in Line.init.exprs:
                 ast_value(initializer, n_init)
+        elif not "None" in str(Line.init):
+                ast_value(Line.init, n_init)
     elif "Struct" or "Union" in str(Line.type):
         n = Node("Struct", parent=parent_node)
         if "Union" in str(Line.type):
