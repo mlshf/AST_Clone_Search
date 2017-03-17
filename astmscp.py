@@ -107,13 +107,11 @@ def ast_value(value, parent_node):
     elif "Case" in str(value):
         n = Node("Case", parent=parent_node)
         ast_value(value.expr, n)
-        for stmt in value.stmts:
-            ast_value(stmt, n)
+        ast_compound(value.stmts, n)
         return
     elif "Default" in str(value):
         n = Node("Default", parent=parent_node)
-        for stmt in value.stmts:
-            ast_value(stmt, n)
+        ast_compound(value.stmts, n)
         return
     elif ("Compound" in str(value)) and not ("CompoundLiteral" in str(value)):
         n = Node("Compound", parent=parent_node)
@@ -315,11 +313,11 @@ def ast_compound(Compound, parent_node):
             n_cond = Node("Condition", parent=n)
             ast_value(Line.cond, n_cond)
             if not "None" in str(Line.iftrue):
-                ast_value(Line.iftrue, n)
+                ast_compound([Line.iftrue], n)
             else:
                 n_true = Node("None", parent=n)
             if not "None" in str(Line.iffalse):
-                ast_value(Line.iffalse, n)
+                ast_compound([Line.iffalse], n)
             else:
                 n_false = Node("None", parent=n)
         elif "Label" in str(Line):
@@ -330,6 +328,45 @@ def ast_compound(Compound, parent_node):
         elif "Goto" in str(Line):
             n = Node("Goto", parent=parent_node)
             name = Node(str(Line.name), n)
+        elif ("DoWhile" in str(Line)) or (("While" in str(Line)) and not ("Do" in str(Line))):
+            n = Node("While", parent=parent_node)
+            if "DoWhile" in str(Line):
+                n.name = "DoWhile"
+            n_cond = Node("Condition", parent=n)
+            ast_value(Line.cond, n_cond)
+            if "Compound" in str(Line.stmt):
+                ast_value(Line.stmt, n)
+            elif not "None" in str(Line.stmt):
+                ast_compound([Line.stmt], n)
+        elif "For" in str(Line):
+            n = Node("For", parent=parent_node)
+            n_init = Node("Init", parent=n)
+            if "DeclList" in str(Line.init):
+                ast_compound(Line.init.decls, n_init)
+            elif "ExprList" in str(Line.init):
+                for expr in Line.init.exprs:
+                    ast_value(expr, n_init)
+            elif not "None" in str(Line.init):
+                ast_value(Line.init, n_init)
+            #
+            n_cond = Node("Condition", parent=n)
+            if "ExprList" in str(Line.cond):
+                for expr in Line.cond.exprs:
+                    ast_value(expr, n_cond)
+            elif not "None" in str(Line.cond):
+                ast_value(Line.cond, n_cond)
+            #
+            n_next = Node("Next", parent=n)
+            if "ExprList" in str(Line.next):
+                for expr in Line.next.exprs:
+                    ast_value(expr, n_next)
+            elif not "None" in str(Line.next):
+                ast_value(Line.next, n_next)
+            #
+            if "Compound" in str(Line.stmt):
+                ast_value(Line.stmt, n)
+            elif not "None" in str(Line.stmt):
+                ast_compound([Line.stmt], n)
     return
 
 
