@@ -65,8 +65,9 @@ def ast_value(value, parent_node):
     #operand is a function call
     elif "FuncCall" in str(value):
         n = Node(str(value.name.name) + "()", parent=parent_node)
-        for i in value.args.exprs:
-            ast_value(i, n)
+        if "ExprList" in str(value.args):
+            for i in value.args.exprs:
+                ast_value(i, n)
         return
     #operand is a cast
     elif "Cast" in str(value):
@@ -103,6 +104,32 @@ def ast_value(value, parent_node):
         for expr in value.exprs:
             ast_value(expr, n)
         return
+    elif "Case" in str(value):
+        n = Node("Case", parent=parent_node)
+        ast_value(value.expr, n)
+        for stmt in value.stmts:
+            ast_value(stmt, n)
+        return
+    elif "Default" in str(value):
+        n = Node("Default", parent=parent_node)
+        for stmt in value.stmts:
+            ast_value(stmt, n)
+        return
+    elif ("Compound" in str(value)) and not ("CompoundLiteral" in str(value)):
+        n = Node("Compound", parent=parent_node)
+        ast_compound(value.block_items, n)
+        return
+    elif "Break" in str(value):
+        n = Node("break", parent=parent_node)
+        return
+    # line is continue operator
+    elif "Continue" in str(value):
+        n = Node("continue", parent=parent_node)
+        return
+    elif "Return" in str(value):
+        n = Node("return", parent = parent_node)
+        ast_value(value.expr, n)
+        return
     else:
         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" + str(value) + "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         return
@@ -126,12 +153,12 @@ def type_decl(Line, n):
         name = Node("Name: " + str(Line.declname), parent=n)
         values = Node("Values", parent=n)
         # for each value (since it's practically an operand) an AST is created
-        if not "None" in str(Line.type.values):
+        if "EnumeratorList" in str(Line.type.values):
             for value in Line.type.values.enumerators:
                 ni = Node(value.name, parent=values)
                 if not "None" in str(value.value):
                     ast_value(value.value, ni)
-    elif "Struct" or "Union" in str(Line.type):
+    elif ("Struct" in str(Line.type)) or ("Union" in str(Line.type)):
         definition = Node(temp_str + "Struct " + str(Line.type.name), parent=n)
         if "Union" in str(Line.type):
             definition.name = temp_str + "Union " + str(Line.type.name)
@@ -221,7 +248,8 @@ def if_decl(Line, parent_node):
                 ast_value(initializer, n_init)
         elif not "None" in str(Line.init):
                 ast_value(Line.init, n_init)
-    elif "Struct" or "Union" in str(Line.type):
+    #struct or union declaration
+    elif ("Struct" in str(Line.type)) or ("Union" in str(Line.type)):
         n = Node("Struct", parent=parent_node)
         if "Union" in str(Line.type):
             n.name = "Union"
@@ -246,12 +274,32 @@ def ast_compound(Compound, parent_node):
         #line is break operator
         elif "Break" in str(Line):
             n = Node("break", parent=parent_node)
+        elif "EmptyStatement" in str(Line):
+            n = Node(";", parent=parent_node)
         #line is continue operator
         elif "Continue" in str(Line):
             n = Node("continue", parent=parent_node)
+        elif "Assignment" in str(Line):
+            ast_value(Line, parent_node)
+        elif "FuncCall" in str(Line):
+            ast_value(Line, parent_node)
+        elif "Return" in str(Line):
+            ast_value(Line, parent_node)
         #something is being declared in this line
         elif "Decl" in str(Line):
             if_decl(Line, parent_node)
+        elif "Compound" in str(Line):
+            n = Node("Compound", parent = parent_node)
+            ast_compound(Line.block_items, n)
+        elif "Switch" in str(Line):
+            n = Node("Switch", parent = parent_node)
+            n_cond = Node("Condition", parent=n)
+            ast_value(Line.cond, n_cond)
+            if ("Case" in str(Line.stmt)) or ("Default" in str(Line.stmt)):
+                ast_value(Line.stmt, n)
+            elif "Compound" in str(Line.stmt):
+                for case in Line.stmt.block_items:
+                    ast_value(case, n)
         elif "If" in str(Line):
             n = Node("If", parent = parent_node)
             n1 = Node(str(Line.cond), parent=n)
@@ -284,6 +332,7 @@ for pre, fill, node in RenderTree(ast_root):
 print("")
 
 
+#creates Most Specialized Common Pattern of two trees
 def createAUT(T1, T2, AUT, num, rules1, rules2):
     if(T1.name == T2.name) and (len(T1.children) == len(T2.children)):
         AUT.name = T1.name
@@ -301,6 +350,8 @@ def createAUT(T1, T2, AUT, num, rules1, rules2):
         num += 1
         return
 
+
+#finds distance between two trees
 def distanceAUT(s1, s2):
     count1 = 0
     count2 = 0
