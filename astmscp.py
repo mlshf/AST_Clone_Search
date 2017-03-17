@@ -117,7 +117,8 @@ def ast_value(value, parent_node):
         return
     elif ("Compound" in str(value)) and not ("CompoundLiteral" in str(value)):
         n = Node("Compound", parent=parent_node)
-        ast_compound(value.block_items, n)
+        if not "None" in str(value.block_items):
+            ast_compound(value.block_items, n)
         return
     elif "Break" in str(value):
         n = Node("break", parent=parent_node)
@@ -129,6 +130,12 @@ def ast_value(value, parent_node):
     elif "Return" in str(value):
         n = Node("return", parent = parent_node)
         ast_value(value.expr, n)
+        return
+    elif "TernaryOp" in str(value):
+        n = Node("TernaryOp", parent=parent_node)
+        ast_value(value.cond, n)
+        ast_value(value.iftrue, n)
+        ast_value(value.iffalse, n)
         return
     else:
         print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" + str(value) + "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
@@ -285,12 +292,15 @@ def ast_compound(Compound, parent_node):
             ast_value(Line, parent_node)
         elif "Return" in str(Line):
             ast_value(Line, parent_node)
+        elif "TernaryOp" in str(Line):
+            ast_value(Line, parent_node)
         #something is being declared in this line
         elif "Decl" in str(Line):
             if_decl(Line, parent_node)
         elif "Compound" in str(Line):
             n = Node("Compound", parent = parent_node)
-            ast_compound(Line.block_items, n)
+            if not "None" in str(Line.block_items):
+                ast_compound(Line.block_items, n)
         elif "Switch" in str(Line):
             n = Node("Switch", parent = parent_node)
             n_cond = Node("Condition", parent=n)
@@ -302,9 +312,24 @@ def ast_compound(Compound, parent_node):
                     ast_value(case, n)
         elif "If" in str(Line):
             n = Node("If", parent = parent_node)
-            n1 = Node(str(Line.cond), parent=n)
-            n2 = Node(str(Line.iftrue), parent=n)
-            n2 = Node(str(Line.iffalse), parent=n)
+            n_cond = Node("Condition", parent=n)
+            ast_value(Line.cond, n_cond)
+            if not "None" in str(Line.iftrue):
+                ast_value(Line.iftrue, n)
+            else:
+                n_true = Node("None", parent=n)
+            if not "None" in str(Line.iffalse):
+                ast_value(Line.iffalse, n)
+            else:
+                n_false = Node("None", parent=n)
+        elif "Label" in str(Line):
+            n = Node("Label")
+            name = Node(str(Line.name), parent=n)
+            if not "None" in str(Line.stmt):
+                ast_compound([Line.stmt], parent_node)
+        elif "Goto" in str(Line):
+            n = Node("Goto", parent=parent_node)
+            name = Node(str(Line.name), n)
     return
 
 
