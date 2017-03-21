@@ -104,8 +104,9 @@ def ast_value(value, parent_node):
     # operand is initialization list
     elif "InitList" in str(value):
         n = Node("InitList", parent = parent_node)
-        for expr in value.exprs:
-            ast_value(expr, n)
+        if not "None" in str(value.exprs):
+            for expr in value.exprs:
+                ast_value(expr, n)
         return
     # operand is Case
     elif "Case" in str(value):
@@ -186,7 +187,8 @@ def type_decl(Line, n):
         n_decls = Node("Fields", parent=n)
         if not "None" in str(Line.type.decls):
             for decl in Line.type.decls:
-                if_decl(decl, n_decls)
+                if not "None" in str(decl):
+                    if_decl(decl, n_decls)
     elif "Decl" in str(Line.type):
         n_decl_name = ""
         if "PtrDecl" in str(Line.type):
@@ -303,28 +305,11 @@ def if_decl(Line, parent_node):
 
 # creates a in-program tree for compound inside a function
 def ast_compound(Compound, parent_node):
+    value_list = ["BinaryOp", "UnaryOp", "ID", "Constant", "Typename", "FuncCall", "Cast", "Assignment", "ArrayRef"]
+    v_l_temp = ["StructRef", "NamedInitializer", "InitList", "Case", "Default", "CompoundLiteral", "Break", "Continue", "Return", "TernaryOp"]
+    value_list.extend(v_l_temp)
     for Line in Compound:
-        #line is binary operator
-        if "BinaryOp" in str(Line):
-            ast_value(Line, parent_node)
-        #line is a unary operator
-        elif "UnaryOp" in str(Line):
-            ast_value(Line, parent_node)
-        #line is break operator
-        elif "Break" in str(Line):
-            n = Node("break", parent=parent_node)
-        elif "EmptyStatement" in str(Line):
-            n = Node(";", parent=parent_node)
-        #line is continue operator
-        elif "Continue" in str(Line):
-            n = Node("continue", parent=parent_node)
-        elif "Assignment" in str(Line):
-            ast_value(Line, parent_node)
-        elif "FuncCall" in str(Line):
-            ast_value(Line, parent_node)
-        elif "Return" in str(Line):
-            ast_value(Line, parent_node)
-        elif "TernaryOp" in str(Line):
+        if any(word in str(Line) for word in value_list):
             ast_value(Line, parent_node)
         #something is being declared in this line
         elif "Decl" in str(Line):
@@ -355,10 +340,10 @@ def ast_compound(Compound, parent_node):
             else:
                 n_false = Node("None", parent=n)
         elif "Label" in str(Line):
-            n = Node("Label")
-            name = Node(str(Line.name), parent=n)
             if not "None" in str(Line.stmt):
                 ast_compound([Line.stmt], parent_node)
+            n = Node("Label", parent=parent_node.children[len(parent_node.children) - 1])
+            name = Node(str(Line.name), parent=n)
         elif "Goto" in str(Line):
             n = Node("Goto", parent=parent_node)
             name = Node(str(Line.name), n)
@@ -414,14 +399,14 @@ for i in ast1.ext:
 #print("")
 #ast2.show()
 print("")
-lines = [8, 2]
 
 ast_root = Node(";")
 
 for i in range(0, len(ast1.ext)):
-    if not "Typedef" in str(ast1.ext[i]):
+    if (not "Typedef" in str(ast1.ext[i])) and (not "Pragma" in str(ast1.ext[i])):
         compound = ast1.ext[i].body.block_items
-        ast_compound(compound, ast_root)
+        if not "None" in str(compound):
+            ast_compound(compound, ast_root)
 
 for pre, fill, node in RenderTree(ast_root):
     print("%s%s" % (pre, node.name))
