@@ -4,13 +4,14 @@ from contextlib import redirect_stdout
 import sys
 from anytree import RenderTree, Node
 
-#with open("C:/Users/fu3uk/Desktop/a/main.c", 'r') as fin:
-    #print(fin.read())
+# with open("C:/Users/fu3uk/Desktop/a/main.c", 'r') as fin:
+    # print(fin.read())
 
-#with open("C:/Users/fu3uk/Desktop/a/main_pp.c", 'r') as fin:
-    #print(fin.read())
+# with open("C:/Users/fu3uk/Desktop/a/main_pp.c", 'r') as fin:
+    # print(fin.read())
 
-#creates an AST of qualifiers
+
+# creates an AST of qualifiers
 def quals(Line, n):
     # for qual in Line.quals:
     # temp_str += str(qual) + " "
@@ -27,71 +28,72 @@ def quals(Line, n):
         volatile.name = "volatile"
     if "restrict" in Line.quals:
         restrict.name = "restrict"
-    if "static" in Line.storage:
-        static.name = "static"
+    if ".Decl" in str(Line):
+        if "static" in Line.storage:
+            static.name = "static"
     return
 
 
-#practically, this generates ast for arguments of operators like x += a + b + 0.5 + sizeof(const volatile int) + sizeof(x/0.5 + 223) + int(y - 25 + printf(k))
+# practically, this generates ast for arguments of operators like x += a + b + 0.5 + sizeof(const volatile int)
+# + sizeof(x/0.5 + 223) + int(y - 25 + printf(k))
 def ast_value(value, parent_node):
-    #operand is a binary operator
+    # operand is a binary operator
     if "BinaryOp" in str(value):
         n = Node(str(value.op), parent=parent_node)
         ast_value(value.left, n)
         ast_value(value.right, n)
         return
-    #operand is an unary operator
+    # operand is an unary operator
     elif "UnaryOp" in str(value):
         n = Node(str(value.op), parent=parent_node)
         ast_value(value.expr, n)
         return
-    #operand is and ID
+    # operand is and ID
     elif "ID" in str(value):
         n = Node(str(value.name), parent=parent_node)
         return
-    #operand is a constant
+    # operand is a constant
     elif "Constant" in str(value):
         n = Node(str(value.value), parent=parent_node)
         return
-    #operand is a typename
+    # operand is a typename
     elif "Typename" in str(value):
-        temp_str = ""
-        for qual in value.quals:
-            temp_str += str(qual) + " "
-        for name in value.type.type.names:
-            temp_str += str(name)
-        n = Node(temp_str, parent=parent_node)
+        n = Node("Typename", parent=parent_node)
+        if_decl(value, n)
         return
-    #operand is a function call
+    # operand is a function call
     elif "FuncCall" in str(value):
         n = Node(str(value.name.name) + "()", parent=parent_node)
         if "ExprList" in str(value.args):
             for i in value.args.exprs:
                 ast_value(i, n)
         return
-    #operand is a cast
+    # operand is a cast
     elif "Cast" in str(value):
-        n = Node("("+ str(value.to_type.type.type.names[0]) + ")" + "()", parent=parent_node)
+        n = Node("Cast", parent=parent_node)
+        n_type = Node("Type", parent=n)
+        ast_value(value.to_type, n_type)
         ast_value(value.expr, n)
         return
-    #operand is an assignment
+    # operand is an assignment
     elif "Assignment" in str(value):
         n = Node(str(value.op), parent=parent_node)
         ast_value(value.lvalue, n)
         ast_value(value.rvalue, n)
         return
-    #operand is an array reference
+    # operand is an array reference
     elif "ArrayRef" in str(value):
         n = Node("ArrayRef", parent=parent_node)
         ast_value(value.name, n)
         ast_value(value.subscript, n)
         return
-    #operand is a struct reference
+    # operand is a struct reference
     elif "StructRef" in str(value):
         n = Node(str(value.type), parent=parent_node)
         ast_value(value.name, n)
         ast_value(value.field, n)
         return
+    # operand is named initializer
     elif "NamedInitializer" in str(value):
         n = Node("NamedInitializer", parent=parent_node)
         n_name = Node("Name", parent = n)
@@ -99,25 +101,30 @@ def ast_value(value, parent_node):
             ast_value(name, n_name)
         ast_value(value.expr, n)
         return
+    # operand is initialization list
     elif "InitList" in str(value):
         n = Node("InitList", parent = parent_node)
         for expr in value.exprs:
             ast_value(expr, n)
         return
+    # operand is Case
     elif "Case" in str(value):
         n = Node("Case", parent=parent_node)
         ast_value(value.expr, n)
         ast_compound(value.stmts, n)
         return
+    # operand is Default
     elif "Default" in str(value):
         n = Node("Default", parent=parent_node)
         ast_compound(value.stmts, n)
         return
+    # operand is Compound
     elif ("Compound" in str(value)) and not ("CompoundLiteral" in str(value)):
         n = Node("Compound", parent=parent_node)
         if not "None" in str(value.block_items):
             ast_compound(value.block_items, n)
         return
+    # operand is break
     elif "Break" in str(value):
         n = Node("break", parent=parent_node)
         return
@@ -125,22 +132,29 @@ def ast_value(value, parent_node):
     elif "Continue" in str(value):
         n = Node("continue", parent=parent_node)
         return
+    # operand is return
     elif "Return" in str(value):
         n = Node("return", parent = parent_node)
         ast_value(value.expr, n)
         return
+    # operand is a ternary operator
     elif "TernaryOp" in str(value):
         n = Node("TernaryOp", parent=parent_node)
         ast_value(value.cond, n)
         ast_value(value.iftrue, n)
         ast_value(value.iffalse, n)
         return
+    elif "CompoundLiteral" in str(value):
+        n = Node("CompoundLiteral", parent=parent_node)
+        ast_value(value.type, n)
+        ast_value(value.init, n)
+        return
     else:
-        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" + str(value) + "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+        print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" + str(value) + "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" + parent_node.name)
         return
 
 
-#creates a in-program tree for Type Declaration subtree of PyCParser
+# creates a in-program tree for Type Declaration subtree of PyCParser
 def type_decl(Line, n):
     temp_str = "Variable type: "
     #built-in or typedef-defined type
@@ -152,7 +166,7 @@ def type_decl(Line, n):
         return
     #enum
     elif "Enum" in str(Line.type):
-        temp_str += str(Line.type.name)
+        temp_str += "enum " + str(Line.type.name)
         # AST for values of ENUM
         definition = Node(temp_str, parent=n)
         name = Node("Name: " + str(Line.declname), parent=n)
@@ -164,19 +178,29 @@ def type_decl(Line, n):
                 if not "None" in str(value.value):
                     ast_value(value.value, ni)
     elif ("Struct" in str(Line.type)) or ("Union" in str(Line.type)):
-        definition = Node(temp_str + "Struct " + str(Line.type.name), parent=n)
+        definition = Node(temp_str + "struct " + str(Line.type.name), parent=n)
         if "Union" in str(Line.type):
-            definition.name = temp_str + "Union " + str(Line.type.name)
+            definition.name = temp_str + "union " + str(Line.type.name)
         name = Node("Name: " + str(Line.declname), parent=n)
         # create ast for fields
         n_decls = Node("Fields", parent=n)
         if not "None" in str(Line.type.decls):
             for decl in Line.type.decls:
                 if_decl(decl, n_decls)
-        return
+    elif "Decl" in str(Line.type):
+        n_decl_name = ""
+        if "PtrDecl" in str(Line.type):
+            n_decl_name = "PtrDecl"
+        elif "TypeDecl" in str(Line.type):
+            n_decl_name = "TypeDecl"
+        elif "ArrayDecl" in str(Line.type):
+            n_decl_name = "ArrayDecl"
+        n_decl = Node(n_decl_name + " ", parent=n)
+        type_decl(Line.type, n_decl)
+    return
 
 
-#function that creates ast for declaration of some sort
+# function that creates ast for declaration of some sort
 def if_decl(Line, parent_node):
     # array is being declared
     if "ArrayDecl" in str(Line.type):
@@ -184,12 +208,13 @@ def if_decl(Line, parent_node):
         # create subtree of quals
         quals(Line, n)
         # calling a function that will build a tree with type qualifiers and typename
-        if "TypeDecl" in str(Line.type.type):
+        if "Decl" in str(Line.type.type):
             type_decl(Line.type.type, n)
         # name = Node(str(Line.name), parent=n)
         # this fragment creates a tree for dimension of array
         dimension = Node("Dimension: ", parent=n)
-        ast_value(Line.type.dim, dimension)
+        if not "None" in str(Line.type.dim):
+            ast_value(Line.type.dim, dimension)
         # A node that contains dimension qualifiers
         dim_qualfs = Node("Dimension qualifiers: ", parent=n)
         if "const" in Line.type.dim_quals:
@@ -201,13 +226,15 @@ def if_decl(Line, parent_node):
         if "static" in Line.type.dim_quals:
             dim_qualfs.name += "static "
         # An AST for initialization list of array
-        n_initlist = Node("InitList", parent=n)
-        if "InitList" in str(Line.init):
-            for initializer in Line.init.exprs:
-                ast_value(initializer, n_initlist)
-        elif not "None" in str(Line.init):
-            n_initlist.name = "Init"
-            ast_value(Line.init, n_initlist)
+        if ".Decl" in str(Line):
+            n_initlist = Node("InitList", parent=n)
+            if "InitList" in str(Line.init):
+                for initializer in Line.init.exprs:
+                    if not "None" in str(initializer):
+                        ast_value(initializer, n_initlist)
+            elif not "None" in str(Line.init):
+                n_initlist.name = "Init"
+                ast_value(Line.init, n_initlist)
     # variable is being declared
     elif "TypeDecl" in str(Line.type):
         n = Node("TypeDecl", parent=parent_node)
@@ -216,13 +243,15 @@ def if_decl(Line, parent_node):
         # calling a function that will build an AST with type, type qualifiers and variable name
         type_decl(Line.type, n)
         # an AST for initializier of a declared variable
-        n_init = Node("Init", parent=n)
-        if "InitList" in str(Line.init):
-            n_init.name = "InitList"
-            for initializer in Line.init.exprs:
-                ast_value(initializer, n_init)
-        elif not "None" in str(Line.init):
-                ast_value(Line.init, n_init)
+        if ".Decl" in str(Line):
+            n_init = Node("Init", parent=n)
+            if "InitList" in str(Line.init):
+                n_init.name = "InitList"
+                for initializer in Line.init.exprs:
+                    if not "None" in str(initializer):
+                        ast_value(initializer, n_init)
+            elif not "None" in str(Line.init):
+                    ast_value(Line.init, n_init)
     # enum declaration
     elif "Enum" in str(Line.type):
         n = Node("Enum", parent=parent_node)
@@ -233,26 +262,29 @@ def if_decl(Line, parent_node):
         # AST for values of ENUM
         values = Node("Values", parent=n)
         # for each value (since it's practically an operand) an AST is created
-        for value in Line.type.values.enumerators:
-            ni = Node(value.name, parent=values)
-            if not "None" in str(value.value):
-                ast_value(value.value, ni)
+        if not ("None" in str(Line.type.values)) and not ("None" in str(Line.type.values.enumerators)):
+            for value in Line.type.values.enumerators:
+                ni = Node(value.name, parent=values)
+                if not "None" in str(value.value):
+                    ast_value(value.value, ni)
     # pointer declaration
     elif "PtrDecl" in str(Line.type):
         n = Node("PtrDecl", parent=parent_node)
         # create subtree of quals
         quals(Line, n)
         # calling a function that will build an AST with type, type qualifiers and variable name
-        if "TypeDecl" in str(Line.type.type):
+        if "Decl" in str(Line.type.type):
             type_decl(Line.type.type, n)
         # an AST for initializier of a declared variable
-        n_init = Node("Init", parent=n)
-        if "InitList" in str(Line.init):
-            n_init.name = "InitList"
-            for initializer in Line.init.exprs:
-                ast_value(initializer, n_init)
-        elif not "None" in str(Line.init):
-                ast_value(Line.init, n_init)
+        if ".Decl" in str(Line):
+            n_init = Node("Init", parent=n)
+            if "InitList" in str(Line.init):
+                n_init.name = "InitList"
+                for initializer in Line.init.exprs:
+                    if not "None" in str(initializer):
+                        ast_value(initializer, n_init)
+            elif not "None" in str(Line.init):
+                    ast_value(Line.init, n_init)
     #struct or union declaration
     elif ("Struct" in str(Line.type)) or ("Union" in str(Line.type)):
         n = Node("Struct", parent=parent_node)
@@ -262,12 +294,14 @@ def if_decl(Line, parent_node):
         quals(Line, n)
         #create ast for fields
         n_decls = Node("Fields", parent=n)
-        for decl in Line.type.decls:
-            if_decl(decl, n_decls)
+        if not "None" in str(Line.type.decls):
+            for decl in Line.type.decls:
+                if not "None" in str(decl):
+                    if_decl(decl, n_decls)
     return
 
 
-#creates a in-program tree for compound inside a function
+# creates a in-program tree for compound inside a function
 def ast_compound(Compound, parent_node):
     for Line in Compound:
         #line is binary operator
@@ -295,7 +329,7 @@ def ast_compound(Compound, parent_node):
         #something is being declared in this line
         elif "Decl" in str(Line):
             if_decl(Line, parent_node)
-        elif "Compound" in str(Line):
+        elif ("Compound" in str(Line)) and not ("CompoundLiteral" in str(Line)):
             n = Node("Compound", parent = parent_node)
             if not "None" in str(Line.block_items):
                 ast_compound(Line.block_items, n)
@@ -305,7 +339,7 @@ def ast_compound(Compound, parent_node):
             ast_value(Line.cond, n_cond)
             if ("Case" in str(Line.stmt)) or ("Default" in str(Line.stmt)):
                 ast_value(Line.stmt, n)
-            elif "Compound" in str(Line.stmt):
+            elif ("Compound" in str(Line.stmt)) and not ("CompoundLiteral" in str(Line.stmt)):
                 for case in Line.stmt.block_items:
                     ast_value(case, n)
         elif "If" in str(Line):
@@ -334,7 +368,7 @@ def ast_compound(Compound, parent_node):
                 n.name = "DoWhile"
             n_cond = Node("Condition", parent=n)
             ast_value(Line.cond, n_cond)
-            if "Compound" in str(Line.stmt):
+            if ("Compound" in str(Line.stmt)) and not ("CompoundLiteral" in str(Line.stmt)):
                 ast_value(Line.stmt, n)
             elif not "None" in str(Line.stmt):
                 ast_compound([Line.stmt], n)
@@ -363,7 +397,7 @@ def ast_compound(Compound, parent_node):
             elif not "None" in str(Line.next):
                 ast_value(Line.next, n_next)
             #
-            if "Compound" in str(Line.stmt):
+            if ("Compound" in str(Line.stmt)) and not ("CompoundLiteral" in str(Line.stmt)):
                 ast_value(Line.stmt, n)
             elif not "None" in str(Line.stmt):
                 ast_compound([Line.stmt], n)
