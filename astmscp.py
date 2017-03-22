@@ -58,6 +58,7 @@ def ast_value(value, parent_node):
         return
     # operand is a typename
     elif "Typename" in str(value):
+        print(value.type)
         n = Node("Typename", parent=parent_node)
         if_decl(value, n)
         return
@@ -112,18 +113,18 @@ def ast_value(value, parent_node):
     elif "Case" in str(value):
         n = Node("Case", parent=parent_node)
         ast_value(value.expr, n)
-        ast_compound(value.stmts, n)
+        ast_compound(value.stmts, n, n)
         return
     # operand is Default
     elif "Default" in str(value):
         n = Node("Default", parent=parent_node)
-        ast_compound(value.stmts, n)
+        ast_compound(value.stmts, n, n)
         return
     # operand is Compound
     elif ("Compound" in str(value)) and not ("CompoundLiteral" in str(value)):
         n = Node("Compound", parent=parent_node)
         if not "None" in str(value.block_items):
-            ast_compound(value.block_items, n)
+            ast_compound(value.block_items, n, n)
         return
     # operand is break
     elif "Break" in str(value):
@@ -197,7 +198,8 @@ def type_decl(Line, n):
             n_decl_name = "TypeDecl"
         elif "ArrayDecl" in str(Line.type):
             n_decl_name = "ArrayDecl"
-        n_decl = Node(n_decl_name + " ", parent=n)
+        print("typedecl:   " + n_decl_name + "   " + str(Line.type))
+        n_decl = Node(n_decl_name + " ", parent = n)
         type_decl(Line.type, n_decl)
     return
 
@@ -211,7 +213,8 @@ def if_decl(Line, parent_node):
         quals(Line, n)
         # calling a function that will build a tree with type qualifiers and typename
         if "Decl" in str(Line.type.type):
-            type_decl(Line.type.type, n)
+            print("before type_decl: " + str(Line.type) + "   " + str(Line.type.type))
+            type_decl(Line.type, n)
         # name = Node(str(Line.name), parent=n)
         # this fragment creates a tree for dimension of array
         dimension = Node("Dimension: ", parent=n)
@@ -276,7 +279,8 @@ def if_decl(Line, parent_node):
         quals(Line, n)
         # calling a function that will build an AST with type, type qualifiers and variable name
         if "Decl" in str(Line.type.type):
-            type_decl(Line.type.type, n)
+            print("before type_decl: " + str(Line.type) + "   " + str(Line.type.type))
+            type_decl(Line.type, n)
         # an AST for initializier of a declared variable
         if ".Decl" in str(Line):
             n_init = Node("Init", parent=n)
@@ -303,8 +307,20 @@ def if_decl(Line, parent_node):
     return
 
 
+#function creates a tree which represents an array of labels (if > 1) before some operator
+def if_label(Line, grandparent_node, label_node, prev_node):
+    temp_node = Node("Label", parent=prev_node)
+    temp_label_name_node = Node("Name: " + str(Line.name), parent=temp_node)
+    if "Label" in str(Line.stmt):
+        if_label(Line.stmt, grandparent_node, label_node, temp_node)
+    elif not "None" in str(Line.stmt):
+        none_node = Node("Last label in row", parent = temp_node)
+        ast_compound([Line.stmt], grandparent_node, temp_node)
+    return
+
+
 # creates a in-program tree for compound inside a function
-def ast_compound(Compound, parent_node):
+def ast_compound(Compound, parent_node, prev_node):
     value_list = ["BinaryOp", "UnaryOp", "ID", "Constant", "Typename", "FuncCall", "Cast", "Assignment", "ArrayRef"]
     v_l_temp = ["StructRef", "NamedInitializer", "InitList", "Case", "Default", "CompoundLiteral", "Break", "Continue", "Return", "TernaryOp"]
     value_list.extend(v_l_temp)
@@ -317,7 +333,7 @@ def ast_compound(Compound, parent_node):
         elif ("Compound" in str(Line)) and not ("CompoundLiteral" in str(Line)):
             n = Node("Compound", parent = parent_node)
             if not "None" in str(Line.block_items):
-                ast_compound(Line.block_items, n)
+                ast_compound(Line.block_items, n, n)
         elif "Switch" in str(Line):
             n = Node("Switch", parent = parent_node)
             n_cond = Node("Condition", parent=n)
@@ -331,22 +347,28 @@ def ast_compound(Compound, parent_node):
             n = Node("If", parent = parent_node)
             n_cond = Node("Condition", parent=n)
             ast_value(Line.cond, n_cond)
+            n_true = Node("IfTrue", parent=n)
+            n_false = Node("IfFalse", parent=n)
             if not "None" in str(Line.iftrue):
-                ast_compound([Line.iftrue], n)
+                ast_compound([Line.iftrue], n_true, n_true)
             else:
-                n_true = Node("None", parent=n)
+                n_true_none = Node("None", parent=n_true)
             if not "None" in str(Line.iffalse):
-                ast_compound([Line.iffalse], n)
+                ast_compound([Line.iffalse], n_false, n_false)
             else:
-                n_false = Node("None", parent=n)
+                n_false_none = Node("None", parent=n_false)
         elif "Label" in str(Line):
-            if not "None" in str(Line.stmt):
-                ast_compound([Line.stmt], parent_node)
-            n = Node("Label", parent=parent_node.children[len(parent_node.children) - 1])
-            name = Node(str(Line.name), parent=n)
+            n = Node("Label")
+            label_name_node = Node("Name: " + str(Line.name), parent = n)
+            if "Label" in str(Line.stmt):
+                if_label(Line.stmt, parent_node, n, n)
+            elif not "None" in str(Line.stmt):
+                ast_compound([Line.stmt], parent_node, n)
+                none_node = Node("Last label in row", parent = n)
+            n.parent = parent_node.children[len(parent_node.children) - 1]
         elif "Goto" in str(Line):
             n = Node("Goto", parent=parent_node)
-            name = Node(str(Line.name), n)
+            name = Node("Name: " + str(Line.name), n)
         elif ("DoWhile" in str(Line)) or (("While" in str(Line)) and not ("Do" in str(Line))):
             n = Node("While", parent=parent_node)
             if "DoWhile" in str(Line):
@@ -356,12 +378,12 @@ def ast_compound(Compound, parent_node):
             if ("Compound" in str(Line.stmt)) and not ("CompoundLiteral" in str(Line.stmt)):
                 ast_value(Line.stmt, n)
             elif not "None" in str(Line.stmt):
-                ast_compound([Line.stmt], n)
+                ast_compound([Line.stmt], n, n)
         elif "For" in str(Line):
             n = Node("For", parent=parent_node)
             n_init = Node("Init", parent=n)
             if "DeclList" in str(Line.init):
-                ast_compound(Line.init.decls, n_init)
+                ast_compound(Line.init.decls, n_init, n_init)
             elif "ExprList" in str(Line.init):
                 for expr in Line.init.exprs:
                     ast_value(expr, n_init)
@@ -385,7 +407,15 @@ def ast_compound(Compound, parent_node):
             if ("Compound" in str(Line.stmt)) and not ("CompoundLiteral" in str(Line.stmt)):
                 ast_value(Line.stmt, n)
             elif not "None" in str(Line.stmt):
-                ast_compound([Line.stmt], n)
+                ast_compound([Line.stmt], n, n)
+    #this is needed so that if instruction is different from compared one only in having label before it
+    #distance would increase only by 1
+    if (prev_node.name == ";") or (prev_node.name == "Compound"):
+        for child in parent_node.children:
+            if not "Label" in str(child.children):
+                placeholder_label_node = Node("Label", parent = child)
+                label_name_node = Node("None", parent = placeholder_label_node)
+                none_node = Node("Last label in row", parent = placeholder_label_node)
     return
 
 
@@ -406,7 +436,7 @@ for i in range(0, len(ast1.ext)):
     if (not "Typedef" in str(ast1.ext[i])) and (not "Pragma" in str(ast1.ext[i])):
         compound = ast1.ext[i].body.block_items
         if not "None" in str(compound):
-            ast_compound(compound, ast_root)
+            ast_compound(compound, ast_root, ast_root)
 
 for pre, fill, node in RenderTree(ast_root):
     print("%s%s" % (pre, node.name))
