@@ -52,7 +52,6 @@ def ast_value(value, parent_node):
         return
     # operand is a typename
     elif "Typename" in str(value):
-        print(value.type)
         n = Node("Typename", parent=parent_node)
         if_decl(value, n)
         return
@@ -192,7 +191,6 @@ def type_decl(Line, n):
             n_decl_name = "TypeDecl"
         elif "ArrayDecl" in str(Line.type):
             n_decl_name = "ArrayDecl"
-        print("typedecl:   " + n_decl_name + "   " + str(Line.type))
         n_decl = Node(n_decl_name + " ", parent = n)
         type_decl(Line.type, n_decl)
     return
@@ -207,7 +205,6 @@ def if_decl(Line, parent_node):
         quals(Line, n)
         # calling a function that will build a tree with type qualifiers and typename
         if "Decl" in str(Line.type.type):
-            print("before type_decl: " + str(Line.type) + "   " + str(Line.type.type))
             type_decl(Line.type, n)
         # name = Node(str(Line.name), parent=n)
         # this fragment creates a tree for dimension of array
@@ -273,7 +270,6 @@ def if_decl(Line, parent_node):
         quals(Line, n)
         # calling a function that will build an AST with type, type qualifiers and variable name
         if "Decl" in str(Line.type.type):
-            print("before type_decl: " + str(Line.type) + "   " + str(Line.type.type))
             type_decl(Line.type, n)
         # an AST for initializier of a declared variable
         if ".Decl" in str(Line):
@@ -402,6 +398,8 @@ def ast_compound(Compound, parent_node, prev_node):
                 ast_value(Line.stmt, n)
             elif not "None" in str(Line.stmt):
                 ast_compound([Line.stmt], n, n)
+        elif "EmptyStatement" in str(Line):
+            n = Node("Empty Statement;", parent = parent_node)
     #this is needed so that if instruction is different from compared one only in having label before it
     #distance would increase only by 1
     if (prev_node.name == ";") or (prev_node.name == "Compound"):
