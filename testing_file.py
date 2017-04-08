@@ -11,6 +11,10 @@ import astmscp
 # with open("C:/Users/fu3uk/Desktop/a/main_pp.c", 'r') as fin:
     # print(fin.read())
 
+if __name__ == "__main__":
+    print(len(sys.argv))
+    print(*sys.argv, sep = " ")
+
 ast1 = parse_file("C:/Users/fu3uk/Desktop/a/main_I.c")
 #ast2 = parse_file("C:/Users/fu3uk/Desktop/a/main.c")
 #ast1.show()

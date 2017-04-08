@@ -12,19 +12,23 @@ def quals(Line, n):
     # adding qualifiers to the temp_str.
     # They are added via IF because thus it won't depend on the order, in which quals were written in code
     qual = Node("Qualifiers", parent = n)
-    const = Node("", parent=qual)
-    volatile = Node("", parent=qual)
-    restrict = Node("", parent=qual)
-    static = Node("", parent=qual)
+    temp_str = ""
+    #const = Node("", parent=qual)
+    #volatile = Node("", parent=qual)
+    #restrict = Node("", parent=qual)
+    #static = Node("", parent=qual)
     if "const" in Line.quals:
-        const.name = "const"
+        #const.name = "const"
+        temp_str += "const "
     if "volatile" in Line.quals:
-        volatile.name = "volatile"
+        #volatile.name = "volatile"
+        temp_str += "volatile "
     if "restrict" in Line.quals:
-        restrict.name = "restrict"
+        #restrict.name = "restrict"
+        temp_str += "restrct "
     if ".Decl" in str(Line):
         if "static" in Line.storage:
-            static.name = "static"
+            #static.name = "static"
     return
 
 
