@@ -45,8 +45,7 @@ int What_Keyword(string str, string* output, vector<string>* id_and_num)//functi
                 }
                 //cout << str << " is a number" << endl;
 
-                *output += "P";//for constant
-                id_and_num->push_back(str);//change numbers and identificators
+                *output += str + " ";//for constant
 
             }
             else//checking if str contains an identifier
@@ -65,7 +64,7 @@ int What_Keyword(string str, string* output, vector<string>* id_and_num)//functi
                 }
                 //cout << str << " is an identifier" << endl;
 
-                *output += "P";//for identifier
+                *output += "ID";//for identifier
                 id_and_num->push_back(str);
 
             }
@@ -202,7 +201,7 @@ int Parametrization(string in_str, string* output, vector<string>* id_and_num)
                                 {
                                     //cout << str_temp << " is a function" << endl;
 
-                                    *output += str_temp;
+                                    *output += "FUNC_ID(";
 
                                 }
                                 else
