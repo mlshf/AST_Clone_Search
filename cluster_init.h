@@ -273,7 +273,8 @@ vector<string> gen_typedefs(vector<vector<size_t>> ID_locations, vector<vector<s
         for(size_t j = 0; j < line_id_locks.size(); ++j)
         {
             if(line_id_locks[j] == line_id_locks[j - 1] + 2)
-                typedefs.push_back((IDs[i])[j - 1]);
+                if( typedefs.end() == find( typedefs.begin(), typedefs.end(), (IDs[i])[j - 1] ) )
+                    typedefs.push_back((IDs[i])[j - 1]);
         }
     }
 
@@ -341,6 +342,7 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared)// returns 1 if clo
         big = Compared;
     }
 
+    //making fragments have same size
     int are_equal = 1;//return value, 1 if clones
     offset = abs(offset);
     size_t i = 0;
@@ -351,6 +353,7 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared)// returns 1 if clo
         second.push_back( big.fragment[offset + i] );
     }
 
+    //generating versions of first and second where identificators have been changed for ID in text_out_i, stored in ID_i and their locations stored in ID_locs_i
     std::vector<std::string> Text_out_1;
     std::vector<std::vector<std::string>> ID_1;
     std::vector<std::vector<size_t>> ID_locs_1;//ID_locations
@@ -369,14 +372,48 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared)// returns 1 if clo
         return 1;
     }
 
-    vector<string> typedefs1 = gen_typedefs(ID_locs_1, ID_1), typedefs2 = gen_typedefs(ID_locs_2, ID_2);
+    //generating lists of IDs that have to be described in typedefs
+    std::vector<string> typedefs1 = gen_typedefs(ID_locs_1, ID_1), typedefs2 = gen_typedefs(ID_locs_2, ID_2);
 
+    //were unable to genereate typedefs
     if(typedefs1[0] == "FAIL" || typedefs2[0] == "FAIL")
     {
         cout << "Could not create additional pseudo-typedefs." << endl;
         return 0;
     }
 
+    //make fragments have same number of left and right figure braces
+    braces_balance(&first);
+    braces_balance(&second);
+
+    //make fragments look like this:
+    //#include <stdio.h>
+    //#include <stdlib.h>
+    //typedef void* ...;
+    //...
+    //typedef void* ...;
+    //void ast_i_func(){
+    //FRAGMENT CODE
+    //...
+    //return;}
+    //which is needed for fragment to be processed with PyCParser
+    first.push_back("return;}");
+    first.insert(first.begin(), "void ast1_func(){");
+    for(size_t i = 0; i < typedefs1.size(); ++i)
+    {
+        first.insert(first.begin(), "typedef void* " + typedefs1[i] + ";");
+    }
+    first.insert(first.begin(), "#include <stdlib.h>");
+    first.insert(first.begin(), "#include <stdio.h>");
+
+    second.push_back("return;}");
+    second.insert(second.begin(), "void ast2_func(){");
+    for(size_t i = 0; i < typedefs2.size(); ++i)
+    {
+        second.insert(second.begin(), "typedef void* " + typedefs2[i] + ";");
+    }
+    second.insert(second.begin(), "#include <stdlib.h>");
+    second.insert(second.begin(), "#include <stdio.h>");
 
 
     /*if(Perform_Comparison(&first, &second) == 1)//returns 1 if not clones, 0 if clones
