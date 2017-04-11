@@ -15,6 +15,7 @@
 
 using namespace std;
 
+//reads init versions identificators from file
 int Get_Start_SHA1(const char* filename, vector<string>* Start_SHA1)
 {
     ifstream in_file(filename, ios_base::in);
@@ -29,7 +30,7 @@ int Get_Start_SHA1(const char* filename, vector<string>* Start_SHA1)
         string S_temp;
         getline(in_file, S_temp);
         int it_is_SHA1 = 1;
-        for(size_t i = 0; i < S_temp.size() && it_is_SHA1 == 1; ++i)
+        for(size_t i = 0; i < S_temp.size() && it_is_SHA1 == 1 && i < 40; ++i)//SHA_1 is 40 symbols long
         {
             if( (isdigit(S_temp[i]) || isalpha(S_temp[i])) == 0 )
                 it_is_SHA1 = 0;
@@ -44,13 +45,13 @@ int Get_Start_SHA1(const char* filename, vector<string>* Start_SHA1)
 int main(int argc, char* argv[])
 {
     //181ed5489bfc64cc0f241f385f1d24f3241cb155 - example of SHA1 - used just for debugging
-    if(argc == 4)
+    if(argc == 4)//there must be strictly 4 command line arguments
     {
-        stringstream S_FragmentSize(argv[2]);
+        stringstream S_FragmentSize(argv[2]);//turn FragmentSize char[] -> size_t
         size_t FragmentSize;
         S_FragmentSize >> FragmentSize;
 
-        if(FragmentSize < 0)
+        if(FragmentSize < 0)//fragment size should be >= 0
         {
             cout << "Second parameter (<SIZE>) should be an integer value greater than 0, or equal." << endl;
             cout << endl;
@@ -61,7 +62,7 @@ int main(int argc, char* argv[])
         cout <<"#GIT COMMANDS EMULATION..." << endl << endl;
         //string S1("git rev-list --min-parents=0 HEAD");
 
-        vector<string> Start_SHA1;
+        vector<string> Start_SHA1;//reading init versions identificators (SHA-1) from file in argv[1]
 
         if(Get_Start_SHA1(argv[1], &Start_SHA1) == 1)
         {
@@ -69,20 +70,24 @@ int main(int argc, char* argv[])
             return 1;
         }
 
+        //print out SHA1 of all versions in argv[1]
         cout << "SHA1 hashes of commits used for initializing are:" << endl;
         for(size_t i = 0; i < Start_SHA1.size(); ++i)
             cout << Start_SHA1[i] << endl;
         cout << endl;
 
-        if(Start_SHA1.size() == 0)
+        //exit if no SHA1 found
+        if(Start_SHA1.size() == 0)//should be at least one version in file - one elemtn in vector
         {
             cout << "No hashes in " << argv[1] << "Aborting..." << endl;
             return 1;
         }
 
+        //first element of vector is initial versions from which we'll start
         string S_SHA1(Start_SHA1[0]);
         cout << "Start commit's SHA1 hash is: " << S_SHA1 << endl;
 
+        //vector that contains versions to be processed is created and filled
         vector<Commit_Level> Commit_Levels;
         Commit_Level Level0;
         Level0.level = 0;
@@ -95,9 +100,10 @@ int main(int argc, char* argv[])
             return 1;
         }
 
+        //
         for(size_t i = 0; i < Commit_Levels.size(); i++)
         {
-            if( i < 10 )
+            if( i < 10 )//выравнивание т.к. появляются двузначные числа
                 cout << "COMMIT LEVEL :  " << Commit_Levels[i].level << " : ";
             else
                 cout << "COMMIT LEVEL : " << Commit_Levels[i].level << " : ";
@@ -109,8 +115,9 @@ int main(int argc, char* argv[])
         }
         cout << endl;
 
+        //vector of Clusters of clones of code is created
         vector<Cluster> Clusters;
-
+        //and initializaed
         for(size_t i = 0; i < Start_SHA1.size(); ++i)
         {
 
@@ -118,11 +125,9 @@ int main(int argc, char* argv[])
             git_command += Start_SHA1[i];
             if(exec_git_command(git_command) == 1)
                 return 1;
-
+            //this vector contains paths to all .c files in current version
             vector<string> Vector_of_Paths;
             list_dir_contents(&Vector_of_Paths);
-
-
 
             if(initialize_clusters(&Vector_of_Paths, &Clusters, Start_SHA1[i], FragmentSize) == 1)
             {
@@ -133,6 +138,7 @@ int main(int argc, char* argv[])
             Vector_of_Paths.clear();//we no longer need the resources
         }
 
+        //this time we have vector of Clusters and we add new elements if needed
         if(Analyze_History(&Commit_Levels, &Clusters, FragmentSize) == 1)
         {
             exec_git_command("git checkout master");

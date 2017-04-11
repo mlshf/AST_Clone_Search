@@ -201,7 +201,7 @@ int Parametrization(string in_str, string* output, vector<string>* id_and_num)
                                 {
                                     //cout << str_temp << " is a function" << endl;
 
-                                    *output += "FUNC_ID(";
+                                    *output += "FUNCDEF(";
 
                                 }
                                 else
