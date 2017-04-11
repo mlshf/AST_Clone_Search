@@ -45,7 +45,7 @@ int Get_Start_SHA1(const char* filename, vector<string>* Start_SHA1)
 int main(int argc, char* argv[])
 {
     //181ed5489bfc64cc0f241f385f1d24f3241cb155 - example of SHA1 - used just for debugging
-    if(argc == 4)//there must be strictly 4 command line arguments
+    if(argc == 4)//there must be strictly 3 command line arguments
     {
         stringstream S_FragmentSize(argv[2]);//turn FragmentSize char[] -> size_t
         size_t FragmentSize;
@@ -182,7 +182,7 @@ int main(int argc, char* argv[])
     }
     else
     {
-        cout << "Exactly four parameters are needed - file with SHA1 hashes of starting commits, fragment size and path to output file that describes cluster without extension." << endl;
+        cout << "Exactly three parameters are needed - file with SHA1 hashes of starting commits, fragment size and path to output file that describes cluster without extension." << endl;
         cout << "For example: ../Course_Realization/bin/Debug/Course_Realization '../sha1.txt' 3 '../output'" << endl;;
     }
 

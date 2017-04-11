@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1491912269 source:/home/nikita/Course_Realization/main.cpp
+1491923339 source:/home/nikita/Course_Realization/main.cpp
 	<iostream>
 	<sstream>
 	<stdio.h>
@@ -35,7 +35,7 @@
 	<vector>
 	<stddef.h>
 
-1491922553 source:/home/nikita/Course_Realization/cluster_init.h
+1491925770 source:/home/nikita/Course_Realization/cluster_init.h
 	"cluster.h"
 	<boost/filesystem.hpp>
 	<iostream>
@@ -51,7 +51,7 @@
 	"git_exec.h"
 	"lexical.h"
 
-1491922553 /home/nikita/Course_Realization/cluster_init.h
+1491934121 /home/nikita/Course_Realization/cluster_init.h
 	"cluster.h"
 	<boost/filesystem.hpp>
 	<iostream>
@@ -245,7 +245,7 @@
 	"history_analysis.h"
 	<cctype>
 
-1491921774 /home/nikita/Course_Realization/lexical.h
+1491925709 /home/nikita/Course_Realization/lexical.h
 	<stdio.h>
 	<ctype.h>
 	<string.h>

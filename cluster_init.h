@@ -30,14 +30,14 @@ struct recursive_directory_range
 
 int string_found_C_extension(std::string path)
 {
-    bool Found = (path.find(".h", path.size() - 2) != std::string::npos);
+    bool Found = (path.find(".c", path.size() - 2) != std::string::npos);
     //Found = Found || (path.find(".H", path.size() - 2) != std::string::npos);
     //Found = Found || (path.find(".hh", path.size() - 3) != std::string::npos);
    // Found = Found || (path.find(".hpp", path.size() - 4) != std::string::npos);
     //Found = Found || (path.find(".h++", path.size() - 4) != std::string::npos);
    // Found = Found || (path.find(".hxx", path.size() - 4) != std::string::npos);
 
-    Found = Found || (path.find(".c", path.size() - 2) != std::string::npos);
+    Found = Found || (path.find(".h", path.size() - 2) != std::string::npos);
     //Found = Found || (path.find(".C", path.size() - 2) != std::string::npos);
     //Found = Found || (path.find(".cc", path.size() - 3) != std::string::npos);
     //Found = Found || (path.find(".cpp", path.size() - 4) != std::string::npos);
@@ -166,11 +166,11 @@ void Delete_Extra_Spaces(std::string* Str)//deletes space symbols except \n and 
         Str->erase( Str->rfind("}//") + 1,  Str->size() - Str->rfind("}//") - 1);
 
     if( Str->rfind("} //") != string::npos )
-        Str->erase( Str->rfind("} //") + 1,  Str->size() - Str->rfind("} //") - 1);*/
+        Str->erase( Str->rfind("} //") + 1,  Str->size() - Str->rfind("} //") - 1);
 
     if( Str->size() >= 2 && (*Str)[0] != '/')
         if( Str->find("//") != string::npos )
-            Str->erase( Str->rfind("//") + 1,  Str->size() - Str->rfind("//") - 1 );
+            Str->erase( Str->rfind("//") + 1,  Str->size() - Str->rfind("//") - 1 );*/
 
     //deleting figure braces at the end and beginning of the string - they can be located at different lines, but fragment still can be clones
     /*if((*Str)[Str->size() - 1] == '}')
@@ -213,6 +213,122 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared)// returns 1 if clo
     return are_equal;
 }*/
 
+int find_locations(vector<size_t>* locations, string source, string str_to_find, size_t step)
+{
+    if(source.find(str_to_find) != string::npos)
+    {
+        locations->push_back(source.find(str_to_find));
+        while((*locations)[locations->size() - 1] + step < source.size())
+        {
+            size_t i = (*locations)[locations->size() - 1] + step;
+            if(source.find(str_to_find, i) == string::npos)
+            {
+                break;
+            }
+            else
+            {
+                locations->push_back(source.find(str_to_find, i));
+            }
+        }
+    }
+
+    return 0;
+}
+
+int gen_id(vector<string> Text, vector<string>* Text_out, vector<vector<string>>* IDs, vector<vector<size_t>>* ID_locations)
+{
+    for(size_t i = 0; i < Text.size(); ++i)
+    {
+        string temp_str_out;
+        vector<string> i_a_o;
+        if( Parametrization(Text[i], &temp_str_out, &i_a_o) == 1 )
+        {
+            cout << "Was unable to parametrize " << Text[i] << endl;
+            return 1;
+        }
+        Text_out->push_back(temp_str_out);
+        IDs->push_back(i_a_o);
+
+        vector<size_t> locations_id_for_line;
+        find_locations(&locations_id_for_line, temp_str_out, "ID", 2);
+        ID_locations->push_back(locations_id_for_line);
+    }
+
+    return 0;
+}
+
+vector<string> gen_typedefs(vector<vector<size_t>> ID_locations, vector<vector<string>> IDs)
+{
+    vector<string> typedefs;
+
+    if(ID_locations.size() != IDs.size())
+    {
+        typedefs.push_back("FAIL");
+        return typedefs;
+    }
+
+    for(size_t i = 0; i < ID_locations.size(); ++i)
+    {
+        vector<size_t> line_id_locks = ID_locations[i];
+        for(size_t j = 0; j < line_id_locks.size(); ++j)
+        {
+            if(line_id_locks[j] == line_id_locks[j - 1] + 2)
+                typedefs.push_back((IDs[i])[j - 1]);
+        }
+    }
+
+    return typedefs;
+}
+
+int braces_balance(vector<string>* v_Str)
+{
+    int l_brace_counter = 0, r_brace_counter = 0;
+
+    for(size_t i = 0; i < v_Str->size(); ++i)//each line
+    {
+        string line = (*v_Str)[i];
+
+        if(line[line.size() - 1] == '{')
+        {
+            ++l_brace_counter;
+        }
+        if(line[line.size() - 1] == '}')
+        {
+            ++r_brace_counter;
+        }
+        else
+        {
+            if(line.size() >= 2 && line[line.size() - 1] == ';' && line[line.size() - 2] == '}')
+                ++r_brace_counter;
+        }
+    }
+
+    if(l_brace_counter > r_brace_counter)
+    {
+        string addition;
+        for(int i = 0; i < l_brace_counter - r_brace_counter; ++i)
+            addition += "};";
+        v_Str->push_back(addition);
+    }
+    else
+    {
+        if(r_brace_counter > l_brace_counter)
+        {
+            string addition;
+            for(int i = 0; i < r_brace_counter - l_brace_counter; ++i)
+                addition += "{";
+            v_Str->insert(v_Str->begin(), addition);
+        }
+        else
+        {
+
+        }
+    }
+
+
+    return 0;
+}
+
 //this function is needed because when initializing compared can be a part of original
 int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared)// returns 1 if clones, 0 if not
 {
@@ -228,12 +344,40 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared)// returns 1 if clo
     int are_equal = 1;//return value, 1 if clones
     offset = abs(offset);
     size_t i = 0;
-    vector<string> first, second;
+    std::vector<string> first, second;
     for(; i < small.fragment.size(); ++i)
     {
         first.push_back( small.fragment[i] );
         second.push_back( big.fragment[offset + i] );
     }
+
+    std::vector<std::string> Text_out_1;
+    std::vector<std::vector<std::string>> ID_1;
+    std::vector<std::vector<size_t>> ID_locs_1;//ID_locations
+    if(gen_id(first, &Text_out_1, &ID_1, &ID_locs_1) == 1)
+    {
+        cout << "Gen ID failed." << endl;
+        return 1;
+    }
+
+    std::vector<std::string> Text_out_2;
+    std::vector<std::vector<std::string>> ID_2;
+    std::vector<std::vector<size_t>> ID_locs_2;//ID_locations
+    if(gen_id(second, &Text_out_2, &ID_2, &ID_locs_2) == 1)
+    {
+        cout << "Gen ID failed." << endl;
+        return 1;
+    }
+
+    vector<string> typedefs1 = gen_typedefs(ID_locs_1, ID_1), typedefs2 = gen_typedefs(ID_locs_2, ID_2);
+
+    if(typedefs1[0] == "FAIL" || typedefs2[0] == "FAIL")
+    {
+        cout << "Could not create additional pseudo-typedefs." << endl;
+        return 0;
+    }
+
+
 
     /*if(Perform_Comparison(&first, &second) == 1)//returns 1 if not clones, 0 if clones
         are_equal = 0;//so return value is 0 if not clones
@@ -275,7 +419,7 @@ int find_defects(string* path, vector<long long>* result)
 
     while(!cppcheck_out.eof())
     {
-        string S_temp;
+        std::string S_temp;
         getline(cppcheck_out, S_temp);
 
         if( S_temp.size() > 0 && S_temp.find(":") != string::npos && S_temp.find("]") != string::npos )//if line looks like this [file.c:line] ...
@@ -318,12 +462,17 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
         vector<long long> defect_lines;
         find_defects(&((*Paths)[i]), &defect_lines);
 
+        cout << "Defect lines in " << (*Paths)[i] << " : " << endl;
+        for(size_t iii = 0; iii < defect_lines.size();++iii)
+            cout << defect_lines[iii] << endl;
+        cout << endl;
+
         std::vector<std::string> previous;//contains strings before commentary in number of FragmentSize
         //and if needed commentary is found then contains previous.size() + more
 
         long long line = 0;//stores current number of line that was read
 
-        while(/*!feof(in_file)*/!in_file.eof())
+        while(/*!feof(in_file)*/!in_file.eof() && defect_lines.size() > 0)
         {/*
             char str[256];
             fscanf(in_file, "%[^\n]\n", str);
@@ -337,7 +486,7 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
             Delete_Extra_Spaces(&S_temp);
 
             //if we've read not end of file, not empty string and not a commentary
-            if(!in_file.eof() && Is_String_Not_Empty(S_temp) == 1 && S_temp[0] != '/')
+            if(!in_file.eof() && Is_String_Not_Empty(S_temp) == 1 && S_temp[0] != '/' && S_temp[0] != '#')
             {
 
                 //we check if last line in prev does not end with ; or { or } - meaning it's an incomplete line
@@ -357,9 +506,10 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                 std::string S_temp_alt;
                 std::vector<string> temp_unused;
 
-                if(Parametrization(S_temp, &S_temp_alt, &temp_unused) == 1);//if we encountered a function declaration then
+                if(Parametrization(S_temp, &S_temp_alt, &temp_unused) == 1)//if we encountered a function declaration then
                 {
                     cout << "String number " << line << " contains NOT C lexeme." << endl;
+                    cout << S_temp << endl << S_temp_alt << endl;
                     return 1;
                 }
 
@@ -397,7 +547,7 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                 Delete_Extra_Spaces(&S_temp2);
 
                                 //if we did not encounter end of file, string is not empty and it is not a commentary
-                                if(!in_file.eof() && Is_String_Not_Empty(S_temp2) == 1 && S_temp2[0] != '/')
+                                if(!in_file.eof() && Is_String_Not_Empty(S_temp2) == 1 && S_temp2[0] != '/' && S_temp[0] != '#')
                                 {
                                     //we check if last line in prev does not end with ; or { or } - meaning it's an incomplete line
                                     if(previous.size() > 0)
@@ -416,9 +566,10 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                     std::string S_temp2_alt;
                                     std::vector<string> temp2_unused;
 
-                                    if(Parametrization(S_temp2, &S_temp2_alt, &temp2_unused) == 1);//if we encountered a function declaration then
+                                    if(Parametrization(S_temp2, &S_temp2_alt, &temp2_unused) == 1)//if we encountered a function declaration then
                                     {
                                         cout << "String number " << line << " contains NOT C lexeme." << endl;
+                                        cout << S_temp << endl << S_temp_alt << endl;
                                         return 1;
                                     }
 
@@ -431,7 +582,10 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                     else
                                     {
                                         previous.push_back(S_temp2);
-                                        j++;//we added line to previous[]
+                                        if(S_temp2[S_temp2.size() - 1] == ';' || S_temp2[S_temp2.size() - 1] == '}' || S_temp2[S_temp2.size() - 1] == '{')
+                                        {
+                                            j++;//we added line to previous[]
+                                        }
                                     }
                                 }
                                 else//here we'll check that file doesn't end with incomplete line
