@@ -115,7 +115,13 @@ void Find_Indices_of_Clusters(string S_compared, vector<Cluster>* Clusters, vect
         vector<string> second;
         second.push_back( (*Clusters)[i].commits[0].files[0].exemplars[0].fragment[j] );
 
-        if(Perform_Comparison(&first, &second) == 0)
+        Exemplar exemplar1;
+        exemplar1.fragment = first;
+
+        Exemplar exemplar2;
+        exemplar2.fragment = second;
+
+        if(Exemplars_Are_Equal(exemplar1, exemplar2) == 0)
             Need_to_Compare->push_back(i);
     }
     return;
@@ -149,138 +155,249 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                 long long line = 0;//stores current number of line that was read
 
                 while(!in_file.eof())
-                {
+                {/*
+                    char str[256];
+                    fscanf(in_file, "%[^\n]\n", str);
 
-                    string S_temp;
-                    getline(in_file, S_temp);
-                    line++;
+                    std::string S_temp(str);*/
+
+                    std::string S_temp;//S_temp stores line that has been read
+                    std::getline(in_file, S_temp);
+                    line++;//number of current line
 
                     Delete_Extra_Spaces(&S_temp);
-                    vector<size_t> Need_to_Compare;//will contain indices of clusters, that have marked string similar to current string
-                    if( (S_temp.size() >= 2 && S_temp[0] == '/' && S_temp[1] == '/') || (S_temp.size() >= 1 && S_temp[0] == '#' ) )
-                        S_temp = " ";
-                    else
-                        Find_Indices_of_Clusters(S_temp, Clusters, &Need_to_Compare);
 
-
-                    if(!in_file.eof() && Need_to_Compare.size() > 0)//checking whether current fragment is a clone is not pointless only if current string is a clone
+                    //if we've read not end of file, not empty string and not a commentary
+                    if(!in_file.eof() && Is_String_Not_Empty(S_temp) == 1 && S_temp[0] != '/' && S_temp[0] != '#')
                     {
-                        Exemplar Exmplr;
-                        Exmplr.line = line;
 
-                        previous.push_back(S_temp);
+                        //we check if last line in prev does not end with ; or { or } - meaning it's an incomplete line
+                        if(previous.size() > 0)
+                        {
+                            string last = previous[previous.size() - 1];//last string from previous
+                            //incomplete line can be found for example when defining a function in some of C coding styles
+                            if(last[last.size() - 1] != ';' && last[last.size() - 1] != '}' && last[last.size() - 1] != '{')
+                            {
+                                S_temp = previous[previous.size() - 1] + " " + S_temp;//new S_temp is last + S_temp
+                                previous.pop_back();//because last element was incomplete - we will add it again - full this time
+                            }
+                        }
 
-                        int t = 0, prev_size = previous.size() - 1;//prev_size - size of previous[] before adding string with weakness
-                        while(t < prev_size && !in_file.eof())
+                        Delete_Extra_Spaces(&S_temp);
+
+                        std::string S_temp_alt;
+                        std::vector<string> temp_unused;
+
+                        if(Parametrization(S_temp, &S_temp_alt, &temp_unused) == 1)//if we encountered a function declaration then
+                        {
+                            cout << "String number " << line << " contains NOT C lexeme." << endl;
+                            cout << S_temp << endl << S_temp_alt << endl;
+                            return 1;
+                        }
+
+                        if( S_temp_alt.find("FUNCDEF(") != std::string::npos || S_temp_alt.find("FUNCDEF (") != std::string::npos )
+                        {
+                            previous.clear();//at this point we have some strings in PREVIOUS and we encountered a string that contains
+                        }
+                        else
                         {
 
-                            std::string S_temp_2;
-                            std::getline(in_file, S_temp_2);
-                            line++;
-                            Delete_Extra_Spaces(&S_temp_2);
+                            /*if( S_temp.find("//") != string::npos )
+                                cout << (*Paths)[i] << " : " << S_temp << " , " << S_temp[0] << endl;*/
 
-                            if(!in_file.eof() && Is_String_Not_Empty(S_temp_2) == 1 && S_temp_2[0] != '/' && S_temp_2[1] != '/')
+                            vector<size_t> Need_to_Compare;//will contain indices of clusters, that have marked string similar to current string
+                            if( (S_temp.size() >= 2 && S_temp[0] == '/' && S_temp[1] == '/') || (S_temp.size() >= 1 && S_temp[0] == '#' ) )
+                                S_temp = " ";
+                            else
                             {
-                                previous.push_back(S_temp_2);
-                                t++;
+                                Find_Indices_of_Clusters(S_temp, Clusters, &Need_to_Compare);
                             }
 
-                        }
+                            //if current line is in defect lines we need to form a fragment
+                            if(!in_file.eof() && Need_to_Compare.size() > 0 )
+                            {
+                                Exemplar Exmplr;
+                                Exmplr.line = line;
 
-                        if(t < prev_size)
-                        {
-                            previous.erase(previous.begin(), previous.begin() + prev_size - t);//because we need fragment with size = 2 * t + 1 and with S_temp in the middle
-                        }
+                                int j = 0, prev_size = previous.size();//prev_size - size of previous[] before adding string with weakness
+                                //j counts number of lines that have been added to previous[]
+                                previous.push_back(S_temp);
 
-                        //AT THIS POINT I HAVE A FRAGMENT OF SIZE 2*FragmentSize + 1 or less THAT CONTAINS WEAKNESS
-                        Exmplr.fragment = previous;
-
-                        if(previous.size() > FragmentSize)
-                            previous.erase(previous.begin(), previous.begin() + previous.size() - FragmentSize);
-
-                        if(Exmplr.fragment.size() != 0)//because empty weaknesses are useless
-                        {
-                            //there are clusters already
-
-                                size_t ix = 0;//
-                                int Found_Equal_Exemplar = 0;
-                                while( ix < Need_to_Compare.size() && Found_Equal_Exemplar != 1 )//Need_to_Compare contains indices of clusters, to which current fragment possibly is assigned
+                                while(j < prev_size && !in_file.eof())
                                 {
-                                    Found_Equal_Exemplar = Exemplars_Are_Equal( (*Clusters)[ Need_to_Compare[ix] ].commits[0].files[0].exemplars[0], Exmplr );
-                                    if(Found_Equal_Exemplar != 1) ++ix;//so that at the end we will have either ix = clusters.size() => no equal exemplars were found
-                                    //or ix value will be index of cluster, that contains equal exemplar
+                                    /*
+                                        char str_t[256];
+                                        fscanf(in_file, "%[^\n]\n", str_t);
+
+                                        string S_temp_2(str_t);*/
+                                        std::string S_temp2;
+                                        std::getline(in_file, S_temp2);
+                                        line++;
+
+                                        Delete_Extra_Spaces(&S_temp2);
+
+                                        //if we did not encounter end of file, string is not empty and it is not a commentary
+                                        if(!in_file.eof() && Is_String_Not_Empty(S_temp2) == 1 && S_temp2[0] != '/' && S_temp[0] != '#')
+                                        {
+                                            //we check if last line in prev does not end with ; or { or } - meaning it's an incomplete line
+                                            if(previous.size() > 0)
+                                            {
+                                                string last = previous[previous.size() - 1];//last string from previous
+                                                //incomplete line can be found for example when defining a function in some of C coding styles
+                                                if(last[last.size() - 1] != ';' && last[last.size() - 1] != '}' && last[last.size() - 1] != '{')
+                                                {
+                                                    S_temp2 = previous[previous.size() - 1] + " " + S_temp2;//new S_temp is last + S_temp
+                                                    previous.pop_back();//because last element was incomplete - we will add it again - full this time
+                                                }
+                                            }
+
+                                            Delete_Extra_Spaces(&S_temp2);
+
+                                            std::string S_temp2_alt;
+                                            std::vector<string> temp2_unused;
+
+                                            if(Parametrization(S_temp2, &S_temp2_alt, &temp2_unused) == 1)//if we encountered a function declaration then
+                                            {
+                                                cout << "String number " << line << " contains NOT C lexeme." << endl;
+                                                cout << S_temp << endl << S_temp_alt << endl;
+                                                return 1;
+                                            }
+
+                                            if( S_temp2_alt.find("FUNCDEF(") != std::string::npos || S_temp2_alt.find("FUNCDEF (") != std::string::npos )
+                                            {
+                                                //j is current number of added lines beyond prev_size + 1. if it's 0 it means that we havent added any yet
+                                                //we have to leave only 2 * j + 1 lines in previous
+                                                break;//while cycle is exited
+                                            }
+                                            else
+                                            {
+                                                previous.push_back(S_temp2);
+                                                if(S_temp2[S_temp2.size() - 1] == ';' || S_temp2[S_temp2.size() - 1] == '}' || S_temp2[S_temp2.size() - 1] == '{')
+                                                {
+                                                    j++;//we added line to previous[]
+                                                }
+                                            }
+                                        }
+                                        else//here we'll check that file doesn't end with incomplete line
+                                        {
+                                            if(previous.size() > 0)
+                                            {
+                                                string last = previous[previous.size() - 1];//last string from previous
+                                                //incomplete line can be found for example when defining a function in some of C coding styles
+                                                if(last[last.size() - 1] != ';' && last[last.size() - 1] != '}' && in_file.eof())//if file ends with incomplete line it's an error
+                                                {
+                                                    cout << "Unexpected end of file " << Paths[i] << endl;
+                                                    return 1;
+                                                }
+                                            }
+                                        }
+                                    //j++;
                                 }
 
-                                if(ix != Need_to_Compare.size())
-                                    ix = Need_to_Compare[ix];//now ix contains not index of element of Need_to_Compare that contains index of needed cluster, but index of needed cluster
-
-                                if(Found_Equal_Exemplar == 1 && ix != Need_to_Compare.size())//we have found equal exemplar
+                                if(j < prev_size)//at this moment j shows how many lines we were able to add
                                 {
-                                    int Commit_Exists = 0;//checking if clusters->[ix] contains commit with SHA1 = (*Commit_Levels)[i].SHA1_of_commits[j]
-                                    int index_of_last_commit = (*Clusters)[ix].commits.size();//contains index of last commit in (*Clusters)[ix]
-                                    if(index_of_last_commit > 0)
-                                        index_of_last_commit--;
-
-                                    if( (*Clusters)[ix].commits[ index_of_last_commit ].SHA1.compare( (*Commit_Levels)[i].SHA1_of_commits[j] ) == 0 )
-                                        Commit_Exists = 1;
-
-                                    if(Commit_Exists == 0)//we have to add commit with SHA1 = (*Commit_Levels)[i].SHA1_of_commits[j]
-                                    {
-                                        Commit Cmmt;
-                                        Cmmt.SHA1 = (*Commit_Levels)[i].SHA1_of_commits[j];
-                                        (*Clusters)[ix].commits.push_back(Cmmt);
-                                        index_of_last_commit++;
-                                    }
-
-                                    //now we have to check, if current Path is among FilePaths in FileDescriptions
-                                    size_t jx = 0;
-                                    int Found_Path = 0;//shows if there's already file description of current file in last commit description
-
-                                    while( jx < (*Clusters)[ix].commits[ index_of_last_commit ].files.size() && Found_Path != 1)//stop if searched through all files[] or if found Path
-                                    {
-                                        if( (*Clusters)[ix].commits[ index_of_last_commit ].files[jx].FilePath.compare( Paths[k] ) == 0)//if there is a FilePath that is equal to current Path
-                                            Found_Path = 1;
-
-                                        if(Found_Path != 1) jx++;//so that at the end jx will be either size() => no equal paths were found
-                                        //or it'll be index of file, that contains another weakness of current type
-                                    }
-
-                                    if(Found_Path == 1)
-                                    {
-                                        (*Clusters)[ix].commits[ index_of_last_commit ].files[jx].exemplars.push_back(Exmplr);//just adding exemplar to the file that already has similar weaknesses
-                                    }
-                                    else//no files that already contain weakness of current type were found
-                                    {
-                                        FileDescripton FlDscrptn;
-                                        FlDscrptn.FilePath = Paths[k];
-                                        FlDscrptn.FileState = "modified";
-                                        FlDscrptn.exemplars.push_back(Exmplr);
-                                        (*Clusters)[ix].commits[ index_of_last_commit ].files.push_back(FlDscrptn);
-                                    }
+                                    previous.erase(previous.begin(), previous.begin() + prev_size - j);
                                 }
 
+                                //AT THIS POINT I HAVE A FRAGMENT OF SIZE 2*FragmentSize + 1 or less THAT CONTAINS WEAKNESS
+                                Exmplr.fragment = previous;
+
+                                if(previous.size() > FragmentSize)
+                                    previous.erase(previous.begin(), previous.begin() + previous.size() - FragmentSize);
+
+                                //now we have fragment of code ready
+                                if(Exmplr.fragment.size() != 0)//because empty weaknesses are useless
+                                {
+                                    size_t ix = 0;
+                                    int Found_Equal = 0;
+                                    while( ix < Need_to_Compare.size() && Found_Equal != 1 )
+                                    {
+                                        Found_Equal = Exemplars_Are_Equal( (*Clusters)[ Need_to_Compare[ix] ].commits[0].files[0].exemplars[0], Exmplr );
+                                        if(Found_Equal != 1) ++ix;//so that at the end we will have either ix = clusters.size() => no equal exemplars were found
+                                        //or ix value will be index of cluster, that contains equal exemplar
+                                    }
+
+                                    if(ix != Need_to_Compare.size())
+                                        ix = Need_to_Compare[ix];
+                                    //now ix contains not index of element of Need_to_Compare that contains index of needed cluster, but index of needed cluster
+
+                                    if(Found_Equal == 1 && ix != Need_to_Compare.size() )//we have found equal exemplar
+                                    {
+                                        int Commit_Exists = 0;//checking if clusters->[ix] contains commit with SHA1 = (*Commit_Levels)[i].SHA1_of_commits[j]
+                                        int index_of_last_commit = (*Clusters)[ix].commits.size();//contains index of last commit in (*Clusters)[ix]
+                                        if(index_of_last_commit > 0)
+                                            index_of_last_commit--;
+
+                                        if( (*Clusters)[ix].commits[ index_of_last_commit ].SHA1.compare( (*Commit_Levels)[i].SHA1_of_commits[j] ) == 0 )
+                                            Commit_Exists = 1;
+
+                                        if(Commit_Exists == 0)//we have to add commit with SHA1 = (*Commit_Levels)[i].SHA1_of_commits[j]
+                                        {
+                                            Commit Cmmt;
+                                            Cmmt.SHA1 = (*Commit_Levels)[i].SHA1_of_commits[j];
+                                            (*Clusters)[ix].commits.push_back(Cmmt);
+                                            index_of_last_commit++;
+                                        }
+
+                                        //now we have to check, if current Path is among FilePaths in FileDescriptions
+                                        size_t jx = 0;
+                                        int Found_Path = 0;//shows if there's already file description of current file in last commit description
+
+                                        while( jx < (*Clusters)[ix].commits[ index_of_last_commit ].files.size() && Found_Path != 1)//stop if searched through all files[] or if found Path
+                                        {
+                                            if( (*Clusters)[ix].commits[ index_of_last_commit ].files[jx].FilePath.compare( Paths[k] ) == 0)//if there is a FilePath that is equal to current Path
+                                                Found_Path = 1;
+
+                                            if(Found_Path != 1) jx++;//so that at the end jx will be either size() => no equal paths were found
+                                            //or it'll be index of file, that contains another weakness of current type
+                                        }
+
+                                        if(Found_Path == 1)
+                                        {
+                                            (*Clusters)[ix].commits[ index_of_last_commit ].files[jx].exemplars.push_back(Exmplr);//just adding exemplar to the file that already has similar weaknesses
+                                        }
+                                        else//no files that already contain weakness of current type were found
+                                        {
+                                            FileDescripton FlDscrptn;
+                                            FlDscrptn.FilePath = Paths[k];
+                                            FlDscrptn.FileState = "Clone";
+                                            FlDscrptn.exemplars.push_back(Exmplr);
+                                            (*Clusters)[ix].commits[ index_of_last_commit ].files.push_back(FlDscrptn);
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if(!in_file.eof() && Is_String_Not_Empty(S_temp) == 1)
+                                {
+                                    if(previous.size() < FragmentSize)
+                                    {
+                                        previous.push_back(S_temp);
+                                    }
+                                    else
+                                        if (previous.size() != 0)
+                                        {
+                                            previous.erase(previous.begin());
+                                            previous.push_back(S_temp);
+                                        }
+                                }
+                            }
                         }
                     }
-                    else
+                    else//here we'll check that file doesn't end with incomplete line
                     {
-                        if(!in_file.eof() && Is_String_Not_Empty(S_temp) == 1)
+                        if(previous.size() > 0)
                         {
-                            if(previous.size() < FragmentSize)
+                            string last = previous[previous.size() - 1];//last string from previous
+                            //incomplete line can be found for example when defining a function in some of C coding styles
+                            if(last[last.size() - 1] != ';' && last[last.size() - 1] != '}' && in_file.eof())//if file ends with incomplete line it's an error
                             {
-                                previous.push_back(S_temp);
-                            }
-                            else if(previous.size() != 0)
-                            {
-                                previous.erase(previous.begin());
-                                previous.push_back(S_temp);
+                                cout << "Unexpected end of file " << Paths[i] << endl;
+                                return 1;
                             }
                         }
                     }
-
-                    //for(size_t Y = 0; Y < previous.size(); ++Y)
-                       // cout << previous[Y] << endl;
-                    //cout << "--------------------------------------------" << endl;
-
                 }
 
                 in_file.close();

@@ -663,7 +663,7 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                 Cmmt.SHA1 = SHA1;
                                 FileDescripton FlDscrptn;//new file description
                                 FlDscrptn.FilePath = (*Paths)[i];//FilePath is current (*Paths)[i]
-                                FlDscrptn.FileState = "start";//meaning that file is in the first commit
+                                FlDscrptn.FileState = "Original";//meaning that file is in the first commit
                                 FlDscrptn.exemplars.push_back(Exmplr);//FileDescription has no exemplars of weakness
                                 Cmmt.files.push_back(FlDscrptn);//commit has no FileDescriptions
                                 Clstr.commits.push_back(Cmmt);//cluster has no commits
@@ -716,7 +716,7 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                         {
                                             FileDescripton FlDscrptn;
                                             FlDscrptn.FilePath = (*Paths)[i];
-                                            FlDscrptn.FileState = "start";
+                                            FlDscrptn.FileState = "Original";
                                             FlDscrptn.exemplars.push_back(Exmplr);
                                             (*clusters)[ix].commits[J].files.push_back(FlDscrptn);
                                         }
@@ -727,7 +727,7 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                         Cmmt.SHA1 = SHA1;
                                         FileDescripton FlDscrptn;//new file description
                                         FlDscrptn.FilePath = (*Paths)[i];//FilePath is current (*Paths)[i]
-                                        FlDscrptn.FileState = "start";//meaning that file is in the first commit
+                                        FlDscrptn.FileState = "Original";//meaning that file is in the first commit
                                         FlDscrptn.exemplars.push_back(Exmplr);//FileDescription has no exemplars of weakness
                                         Cmmt.files.push_back(FlDscrptn);//commit has no FileDescriptions
                                         (*clusters)[ix].commits.push_back(Cmmt);//cluster has no such commit yet
@@ -740,7 +740,7 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                     Cmmt.SHA1 = SHA1;
                                     FileDescripton FlDscrptn;//new file description
                                     FlDscrptn.FilePath = (*Paths)[i];//FilePath is current (*Paths)[i]
-                                    FlDscrptn.FileState = "start";//meaning that file is in the first commit
+                                    FlDscrptn.FileState = "Original";//meaning that file is in the first commit
                                     FlDscrptn.exemplars.push_back(Exmplr);//FileDescription has no exemplars of weakness
                                     Cmmt.files.push_back(FlDscrptn);//commit has no FileDescriptions
                                     Clstr.commits.push_back(Cmmt);//cluster has no commits
