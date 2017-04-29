@@ -524,17 +524,21 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
 
                 Delete_Extra_Spaces(&S_temp);
 
-                std::string S_temp_alt;
+                std::string outstr;
                 std::vector<string> temp_unused;
 
-                if(Parametrization(S_temp, &S_temp_alt, &temp_unused) == 1)//if we encountered a function declaration then
+                if(Parametrization(S_temp, &outstr, &temp_unused) == 1)//if we encountered a function declaration then
                 {//we'll check if we encountered a function declaration and skip it if so
                     cout << "String number " << line << " contains NOT C lexeme." << endl;
-                    cout << S_temp << endl << S_temp_alt << endl;
+                    cout << S_temp << endl << outstr << endl;
                     return 1;
                 }
 
-                if( S_temp_alt.find("FUNCDEF(") != std::string::npos || S_temp_alt.find("FUNCDEF (") != std::string::npos )
+                //here we check if we encountered a function declaration - if so skip it
+                string PFPF("CBP4_PARAMETERIZED_FUNCNAME_POSSIBLE_FUNCDEF");
+                if( ( outstr.find( PFPF + "(" ) != string::npos || outstr.find( PFPF + " (") != string::npos ) && outstr[ outstr.size() - 1] != ';'
+                && outstr.find("do") != 0 && outstr.find("else") != 0 && outstr.find("enum") != 0 && outstr.find("for") != 0 && outstr.find("if") != 0 && outstr.find("sizeof") != 0
+                && outstr.find("return") != 0 && outstr.find("switch") != 0 && outstr.find("while") != 0 && outstr.find("{") != 0 && outstr.find("case") != 0 )
                 {
                     previous.clear();//at this point we have some strings in PREVIOUS and we encountered a string that contains
                 }
@@ -584,17 +588,20 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
 
                                     Delete_Extra_Spaces(&S_temp2);
 
-                                    std::string S_temp2_alt;
+                                    std::string outstr2;
                                     std::vector<string> temp2_unused;
 
-                                    if(Parametrization(S_temp2, &S_temp2_alt, &temp2_unused) == 1)//if we encountered a function declaration then
+                                    if(Parametrization(S_temp2, &outstr2, &temp2_unused) == 1)//if we encountered a function declaration then
                                     {
                                         cout << "String number " << line << " contains NOT C lexeme." << endl;
-                                        cout << S_temp << endl << S_temp_alt << endl;
+                                        cout << S_temp << endl << outstr2 << endl;
                                         return 1;
                                     }
 
-                                    if( S_temp2_alt.find("FUNCDEF(") != std::string::npos || S_temp2_alt.find("FUNCDEF (") != std::string::npos )
+                                    //here we check if we encountered a function declaration - if so skip it
+                                    if( ( outstr2.find( PFPF + "(" ) != string::npos || outstr2.find( PFPF + " (") != string::npos ) && outstr2[ outstr2.size() - 1] != ';'
+                                    && outstr2.find("do") != 0 && outstr2.find("else") != 0 && outstr2.find("enum") != 0 && outstr2.find("for") != 0 && outstr2.find("if") != 0 && outstr2.find("sizeof") != 0
+                                    && outstr2.find("return") != 0 && outstr2.find("switch") != 0 && outstr2.find("while") != 0 && outstr2.find("{") != 0 && outstr2.find("case") != 0 )
                                     {
                                         //j is current number of added lines beyond prev_size + 1. if it's 0 it means that we havent added any yet
                                         //we have to leave only 2 * j + 1 lines in previous

@@ -1,9 +1,9 @@
 #ifndef LEXICAL_H_INCLUDED
 #define LEXICAL_H_INCLUDED
 
-#include<stdio.h>
-#include<ctype.h>
-#include<string.h>
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
@@ -89,7 +89,6 @@ int Parametrization(string in_str, string* output, vector<string>* id_and_num)
 
         if(operators.find(ch) != string::npos)//if ch is an operator
         {
-
             if(str_temp.size() != 0)
             {
                 str_temp.erase(str_temp.end() - 1);
@@ -168,7 +167,6 @@ int Parametrization(string in_str, string* output, vector<string>* id_and_num)
                     }
                     else
                     {
-
                         if(ch == '\'')//special case - constant char string
                         {
                             str_temp += ch;
@@ -197,16 +195,26 @@ int Parametrization(string in_str, string* output, vector<string>* id_and_num)
                                     ++i;
                                 }
 
-                                if(ch == '(')//found a function
+                                if(ch == '(')//found a function call or definition
                                 {
                                     //cout << str_temp << " is a function" << endl;
-
-                                    *output += "FUNCDEF(";
-
+                                    if( output->size() > 0 && operators.find( (*output)[output->size() - 1] ) == string::npos )
+                                    {
+                                        *output += "CBP4_PARAMETERIZED_FUNCNAME_POSSIBLE_FUNCDEF";
+                                    }
+                                    else
+                                        if( output->size() > 0 && (*output)[output->size() - 1] == '*' )
+                                        {
+                                            *output += "CBP4_PARAMETERIZED_FUNCNAME_POSSIBLE_FUNCDEF";
+                                        }
+                                        else
+                                        {
+                                            *output += str_temp;
+                                        }
                                 }
                                 else
                                 {
-                                    if(ch == '{')//found a structure
+                                    if(ch == '{')//found a structure or union or compound operator
                                     {
                                         //cout << str_temp << " is a structure" << endl;
 
