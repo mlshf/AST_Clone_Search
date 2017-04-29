@@ -184,34 +184,6 @@ void Delete_Extra_Spaces(std::string* Str)//deletes space symbols except \n and 
 
     return;
 }
-/*
-int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared)// returns 1 if clones, 0 if not
-{
-    int offset = 0;
-
-    if(Original.fragment.size() <= Compared.fragment.size())//if original is included in compared
-    {
-        offset = ( (int)Compared.fragment.size() - (int)Original.fragment.size() ) / 2;
-    }
-    else if( Compared.fragment.size() < Original.fragment.size() )
-    {
-        return 0;//because if Compared is smaller than Original it is not considered a clone
-    }
-
-    int are_equal = 1;//return value, 1 if clones
-    size_t i = 0;
-    vector<string> first, second;
-    for(; i < Original.fragment.size(); ++i)
-    {
-        first.push_back( Original.fragment[i] );
-        second.push_back( Compared.fragment[offset + i] );
-    }
-
-    if(Perform_Comparison(&first, &second) == 1)//returns 1 if not clones, 0 if clones
-        are_equal = 0;//so return value is 0 if not clones
-
-    return are_equal;
-}*/
 
 int find_locations(vector<size_t>* locations, string source, string str_to_find, size_t step)
 {
@@ -331,7 +303,7 @@ int braces_balance(vector<string>* v_Str)
 }
 
 //this function is needed because when initializing compared can be a part of original
-int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared)// returns 1 if clones, 0 if not
+int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fake_libc)// returns 1 if clones, 0 if not
 {
     int offset  = ((int)Original.fragment.size() - (int)Compared.fragment.size()) / 2;
     Exemplar small = Compared, big = Original;
@@ -343,7 +315,6 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared)// returns 1 if clo
     }
 
     //making fragments have same size
-    int are_equal = 1;//return value, 1 if clones
     offset = abs(offset);
     size_t i = 0;
     std::vector<string> first, second;
@@ -419,36 +390,55 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared)// returns 1 if clo
     /*if(Perform_Comparison(&first, &second) == 1)//returns 1 if not clones, 0 if clones
         are_equal = 0;//so return value is 0 if not clones
 */
-    return are_equal;
-}
 
-//locations vector is being cut to only contain numbers of lines
-/*int cut_cppcheck_result(vector<string>* cppcheck)
-{
-    for(size_t i = 0; i < cppcheck->size(); ++i)
+    std::ofstream outfile1 ("CPR4_GCC_PP_C99_AST_1.c", std::ofstream::out | std::ofstream::trunc);
+
+    for(size_t i = 0; i < first.size(); ++i)
     {
-        if( (*cppcheck)[i].size() > 0 && (*cppcheck)[i].find(":") != string::npos && (*cppcheck)[i].find("]") != string::npos )
-        {
-            size_t i_beg = (*cppcheck)[i].find(":"), i_end = (*cppcheck)[i].find("]");
-            (*cppcheck)[i] = (*cppcheck)[i].substr(i_beg + 1, i_end - i_beg - 1);
-        }
+        outfile1 << first[i] << std::endl;
     }
-    return 0;
-}*/
+
+    std::ofstream outfile2 ("CPR4_GCC_PP_C99_AST_2.c", std::ofstream::out | std::ofstream::trunc);
+
+    for(size_t i = 0; i < second.size(); ++i)
+    {
+        outfile2 << second[i] << std::endl;
+    }
+
+    outfile1.close();
+
+    exec_git_command("gcc -E -I" + path_to_fake_libc + "fake_libc_include CPR4_GCC_PP_C99_AST_1.c -o out_CPR4_GCC_PP_C99_AST_1.c");
+    exec_git_command("gcc -E -I" + path_to_fake_libc + "fake_libc_include CPR4_GCC_PP_C99_AST_2.c -o out_CPR4_GCC_PP_C99_AST_2.c");
+
+    remove("CPR4_GCC_PP_C99_AST_1.c");
+    remove("CPR4_GCC_PP_C99_AST_2.c");
+
+    vector<string> result;
+    exec_command("python3 " + path_to_fake_libc + "testing_file.py out_CPR4_GCC_PP_C99_AST_1.c out_CPR4_GCC_PP_C99_AST_2.c", &result);
+    if(result.size() > 1)
+    {
+        result.erase( result.begin() + 1, result.end() );
+    }
+
+    remove("out_CPR4_GCC_PP_C99_AST_1.c");
+    remove("out_CPR4_GCC_PP_C99_AST_2.c");
+
+    if( result[0] == "Failed to parse file" )
+        return 0;
+
+    return std::stoi( result[0] );
+}
 
 //this function will find locations of defects in file PATH and store them in RESULT
 int find_defects(string* path, vector<long long>* result)
 {
     //for file described by PATH cppcheck is launched, it's result stored in CPR_cppcheck_output.txt
-    exec_git_command("cppcheck --std=c99 " + *path + " 2> CPR_cppcheck_output.txt");
+    exec_git_command("cppcheck --std=c99 " + *path + " 2> CPR4_C99_cppcheck_output.txt");
 
-    //for(size_t i =0; i < output.size();++i)
-        //cout << output[i] << endl;
-
-    ifstream cppcheck_out("CPR_cppcheck_output.txt", ios_base::in);//processing cppcheck result
+    ifstream cppcheck_out("CPR4_C99_cppcheck_output.txt", ios_base::in);//processing cppcheck result
     if(!cppcheck_out.is_open())
     {
-        std::cout << "FILE : CPR_cppcheck_output.txt COULD NOT BE OPENED. ABORTING..." << std::endl;
+        std::cout << "FILE : CPR4_C99_cppcheck_output.txt COULD NOT BE OPENED. ABORTING..." << std::endl;
         return 1;
     }
 
@@ -465,23 +455,17 @@ int find_defects(string* path, vector<long long>* result)
             S_temp = S_temp.substr(i_beg + 1, i_end - i_beg - 1);
             result->push_back(std::stoll(S_temp));//string is translated to long long
         }
-        //CppCheck_result.push_back(S_temp);
     }
 
     cppcheck_out.close();
-/*
-    cut_cppcheck_result(&CppCheck_result);
 
-    for(size_t i = 0; i < CppCheck_result.size(); ++i)
-    {
-        result->push_back(std::stoll(CppCheck_result[i]));
-    }*/
+    remove("CPR4_C99_cppcheck_output.txt");
 
     return 0;
 };
 
 //for each file in version we find fragment located at position where CppCheck found and either creates new cluster or add to existing
-int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string SHA1, size_t FragmentSize)
+int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string SHA1, size_t FragmentSize, string path_to_fake_libc)
 {
     for(size_t i = 0; i < Paths->size(); ++i)
     {/*
@@ -544,7 +528,7 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                 std::vector<string> temp_unused;
 
                 if(Parametrization(S_temp, &S_temp_alt, &temp_unused) == 1)//if we encountered a function declaration then
-                {
+                {//we'll check if we encountered a function declaration and skip it if so
                     cout << "String number " << line << " contains NOT C lexeme." << endl;
                     cout << S_temp << endl << S_temp_alt << endl;
                     return 1;
@@ -675,7 +659,7 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                 int Found_Equal = 0;
                                 while( ix < clusters->size() && Found_Equal != 1 )
                                 {
-                                    Found_Equal = Exemplars_Are_Equal( (*clusters)[ix].commits[0].files[0].exemplars[0], Exmplr );
+                                    Found_Equal = Exemplars_Are_Equal( (*clusters)[ix].commits[0].files[0].exemplars[0], Exmplr, path_to_fake_libc );
                                     if(Found_Equal != 1) ++ix;//so that at the end we will have either ix = clusters.size() => no equal exemplars were found
                                     //or ix value will be index of cluster, that contains equal exemplar
                                 }

@@ -51,6 +51,12 @@ int main(int argc, char* argv[])
         size_t FragmentSize;
         S_FragmentSize >> FragmentSize;
 
+        string path_to_exe(argv[0]);
+        string key("Course_Realization");
+        size_t pos = path_to_exe.rfind( key );
+        if( pos != std::string::npos )
+            path_to_exe.erase( path_to_exe.begin() + pos, path_to_exe.end() );
+
         if(FragmentSize < 0)//fragment size should be >= 0
         {
             cout << "Second parameter (<SIZE>) should be an integer value greater than 0, or equal." << endl;
@@ -129,7 +135,7 @@ int main(int argc, char* argv[])
             vector<string> Vector_of_Paths;
             list_dir_contents(&Vector_of_Paths);
 
-            if(initialize_clusters(&Vector_of_Paths, &Clusters, Start_SHA1[i], FragmentSize) == 1)
+            if(initialize_clusters(&Vector_of_Paths, &Clusters, Start_SHA1[i], FragmentSize, path_to_exe) == 1)
             {
                 exec_git_command("git checkout master");
                 return 1;
@@ -139,7 +145,7 @@ int main(int argc, char* argv[])
         }
 
         //this time we have vector of Clusters and we add new elements if needed
-        if(Analyze_History(&Commit_Levels, &Clusters, FragmentSize) == 1)
+        if(Analyze_History(&Commit_Levels, &Clusters, FragmentSize, path_to_exe) == 1)
         {
             exec_git_command("git checkout master");
             return 1;

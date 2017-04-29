@@ -1,4 +1,4 @@
-from pycparser import parse_file,c_parser, c_generator, c_ast
+from pycparser import parse_file, c_parser, c_generator, c_ast
 import io
 from contextlib import redirect_stdout
 import sys
@@ -12,35 +12,40 @@ import astmscp
     # print(fin.read())
 
 if __name__ == "__main__":
-    print(len(sys.argv))
-    print(*sys.argv, sep = " ")
 
-ast1 = parse_file(sys.argv[0])
-#ast2 = parse_file("C:/Users/fu3uk/Desktop/a/main.c")
-#ast1.show()
-for i in ast1.ext:
-    if not ("Typedef" in str(i)):
-        i.show()
-#print("")
-#ast2.show()
-print("")
+    '''print(len(sys.argv))
+    for i in range(0, len(sys.argv)):
+        print(str(i) + " " + sys.argv[i])
+    print("")'''
 
-lines = [8, 2]
+    if len(sys.argv) < 3:
+        print("Too few arguments - need >= 2")
+        quit()
+try:
+    ast1 = parse_file(sys.argv[1])
+    ast2 = parse_file(sys.argv[2])
+except:
+    print("Failed to parse file")
+    quit()
 
-ast_root = Node(";")
+ast1_root = Node(";")
+ast2_root = Node(";")
 
 for i in range(0, len(ast1.ext)):
     if (not "Typedef" in str(ast1.ext[i])) and (not "Pragma" in str(ast1.ext[i])):
         compound = ast1.ext[i].body.block_items
         if not "None" in str(compound):
-            astmscp.ast_compound(compound, ast_root, ast_root)
+            astmscp.ast_compound(compound, ast1_root, ast1_root)
 
-for pre, fill, node in RenderTree(ast_root):
-    print("%s%s" % (pre, node.name))
-print("")
-
+for i in range(0, len(ast2.ext)):
+    if (not "Typedef" in str(ast2.ext[i])) and (not "Pragma" in str(ast2.ext[i])):
+        compound = ast2.ext[i].body.block_items
+        if not "None" in str(compound):
+            astmscp.ast_compound(compound, ast2_root, ast2_root)
 
 r = Node("?")
+
+'''
 r1 = Node(";")
 r1n1 = Node("=", parent = r1)
 r1n11 = Node("x", parent = r1n1)
@@ -62,24 +67,45 @@ r2n1222 = Node("-", parent=r2n122)
 r2n12221 = Node("y", parent=r2n1222)
 r2n12222 = Node("ZZZ", parent=r2n1222)
 r2n2 = Node("exit", parent = r2)
+'''
 
 num = 1
 rules1 = []
 rules2 = []
-astmscp.createAUT(ast_root, r2, r, num, rules1, rules2)
 
-for pre, fill, node in RenderTree(r1):
-    print("%s%s" % (pre, node.name))
-print("")
+astmscp.createAUT(ast1_root, ast2_root, r, num, rules1, rules2)
 
-for pre, fill, node in RenderTree(r2):
-    print("%s%s" % (pre, node.name))
-print("")
+if "-show" in sys.argv:
+    #ast1.show()
+    print("AST #1:\n")
+    for i in ast1.ext:
+        if not ("Typedef" in str(i)):
+            i.show()
+    print("")
+    print("AST #2:\n")
+    for i in ast2.ext:
+        if not ("Typedef" in str(i)):
+            i.show()
+    #ast2.show()
+    print("")
+    print("\nAUT:\n")
+    for pre, fill, node in RenderTree(ast1_root):
+        print("%s%s" % (pre, node.name))
+    print("")
+    print("\nAUT:\n")
+    for pre, fill, node in RenderTree(ast2_root):
+        print("%s%s" % (pre, node.name))
+    print("")
+    print("\nAUT:\n")
+    for pre, fill, node in RenderTree(r):
+        print("%s%s" % (pre, node.name))
+    print("")
 
-for pre, fill, node in RenderTree(r):
-    print("%s%s" % (pre, node.name))
-print("")
-
-print("Distance between trees is: " + str(astmscp.distanceAUT(rules1, rules2)))
+distance = astmscp.distanceAUT(rules1, rules2)
+#if distance is <= 4/3 * sqrt( size1, size2 )
+if distance * distance * 9 <=  AST_size( ast1_root ) * AST_size( ast2_root ) * 16:
+	print(1)
+else:
+	print(0)
 
 #print(aString) #This prints "None" instead of printing the parse tree

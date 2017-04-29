@@ -101,6 +101,11 @@ if "-show" in sys.argv:
         print("%s%s" % (pre, node.name))
     print("")
 
-print("Distance between trees is: " + str(astmscp.distanceAUT(rules1, rules2)))
+distance = astmscp.distanceAUT(rules1, rules2)
+#if distance is <= 4/3 * sqrt( size1, size2 )
+if distance * distance * 9 <=  AST_size( ast1_root ) * AST_size( ast2_root ) * 16:
+	print(1)
+else:
+	print(0)
 
 #print(aString) #This prints "None" instead of printing the parse tree

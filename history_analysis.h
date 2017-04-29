@@ -102,7 +102,7 @@ int Fill_Commit_Levels(vector<Commit_Level>* Commit_Levels, vector<string>* Star
     return 0;
 }
 
-void Find_Indices_of_Clusters(string S_compared, vector<Cluster>* Clusters, vector<size_t>* Need_to_Compare)//returns number of cluster that contains similar original string or -1 otherwise
+void Find_Indices_of_Clusters(string S_compared, vector<Cluster>* Clusters, vector<size_t>* Need_to_Compare, string path_to_fake_libc)//returns number of cluster that contains similar original string or -1 otherwise
 {
     vector<string> first;
     first.push_back(S_compared);
@@ -121,13 +121,13 @@ void Find_Indices_of_Clusters(string S_compared, vector<Cluster>* Clusters, vect
         Exemplar exemplar2;
         exemplar2.fragment = second;
 
-        if(Exemplars_Are_Equal(exemplar1, exemplar2) == 0)
+        if(Exemplars_Are_Equal(exemplar1, exemplar2, path_to_fake_libc) == 1)
             Need_to_Compare->push_back(i);
     }
     return;
 }
 
-int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Clusters, size_t FragmentSize)
+int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Clusters, size_t FragmentSize, string path_to_fake_libc)
 {
     for(size_t i = 1; i < Commit_Levels->size(); ++i)
     {
@@ -155,12 +155,7 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                 long long line = 0;//stores current number of line that was read
 
                 while(!in_file.eof())
-                {/*
-                    char str[256];
-                    fscanf(in_file, "%[^\n]\n", str);
-
-                    std::string S_temp(str);*/
-
+                {
                     std::string S_temp;//S_temp stores line that has been read
                     std::getline(in_file, S_temp);
                     line++;//number of current line
@@ -170,7 +165,6 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                     //if we've read not end of file, not empty string and not a commentary
                     if(!in_file.eof() && Is_String_Not_Empty(S_temp) == 1 && S_temp[0] != '/' && S_temp[0] != '#')
                     {
-
                         //we check if last line in prev does not end with ; or { or } - meaning it's an incomplete line
                         if(previous.size() > 0)
                         {
@@ -189,7 +183,7 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                         std::vector<string> temp_unused;
 
                         if(Parametrization(S_temp, &S_temp_alt, &temp_unused) == 1)//if we encountered a function declaration then
-                        {
+                        {//we'll check if we encountered a function declaration and skip it if so
                             cout << "String number " << line << " contains NOT C lexeme." << endl;
                             cout << S_temp << endl << S_temp_alt << endl;
                             return 1;
@@ -201,16 +195,12 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                         }
                         else
                         {
-
-                            /*if( S_temp.find("//") != string::npos )
-                                cout << (*Paths)[i] << " : " << S_temp << " , " << S_temp[0] << endl;*/
-
                             vector<size_t> Need_to_Compare;//will contain indices of clusters, that have marked string similar to current string
                             if( (S_temp.size() >= 2 && S_temp[0] == '/' && S_temp[1] == '/') || (S_temp.size() >= 1 && S_temp[0] == '#' ) )
                                 S_temp = " ";
                             else
                             {
-                                Find_Indices_of_Clusters(S_temp, Clusters, &Need_to_Compare);
+                                Find_Indices_of_Clusters(S_temp, Clusters, &Need_to_Compare, path_to_fake_libc);
                             }
 
                             //if current line is in defect lines we need to form a fragment
@@ -225,73 +215,67 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
 
                                 while(j < prev_size && !in_file.eof())
                                 {
-                                    /*
-                                        char str_t[256];
-                                        fscanf(in_file, "%[^\n]\n", str_t);
+                                    std::string S_temp2;
+                                    std::getline(in_file, S_temp2);
+                                    line++;
 
-                                        string S_temp_2(str_t);*/
-                                        std::string S_temp2;
-                                        std::getline(in_file, S_temp2);
-                                        line++;
+                                    Delete_Extra_Spaces(&S_temp2);
+
+                                    //if we did not encounter end of file, string is not empty and it is not a commentary
+                                    if(!in_file.eof() && Is_String_Not_Empty(S_temp2) == 1 && S_temp2[0] != '/' && S_temp[0] != '#')
+                                    {
+                                        //we check if last line in prev does not end with ; or { or } - meaning it's an incomplete line
+                                        if(previous.size() > 0)
+                                        {
+                                            string last = previous[previous.size() - 1];//last string from previous
+                                            //incomplete line can be found for example when defining a function in some of C coding styles
+                                            if(last[last.size() - 1] != ';' && last[last.size() - 1] != '}' && last[last.size() - 1] != '{')
+                                            {
+                                                S_temp2 = previous[previous.size() - 1] + " " + S_temp2;//new S_temp is last + S_temp
+                                                previous.pop_back();//because last element was incomplete - we will add it again - full this time
+                                            }
+                                        }
 
                                         Delete_Extra_Spaces(&S_temp2);
 
-                                        //if we did not encounter end of file, string is not empty and it is not a commentary
-                                        if(!in_file.eof() && Is_String_Not_Empty(S_temp2) == 1 && S_temp2[0] != '/' && S_temp[0] != '#')
+                                        std::string S_temp2_alt;
+                                        std::vector<string> temp2_unused;
+
+                                        if(Parametrization(S_temp2, &S_temp2_alt, &temp2_unused) == 1)//if we encountered a function declaration then
                                         {
-                                            //we check if last line in prev does not end with ; or { or } - meaning it's an incomplete line
-                                            if(previous.size() > 0)
+                                            cout << "String number " << line << " contains NOT C lexeme." << endl;
+                                            cout << S_temp << endl << S_temp_alt << endl;
+                                            return 1;
+                                        }
+
+                                        if( S_temp2_alt.find("FUNCDEF(") != std::string::npos || S_temp2_alt.find("FUNCDEF (") != std::string::npos )
+                                        {
+                                            //j is current number of added lines beyond prev_size + 1. if it's 0 it means that we havent added any yet
+                                            //we have to leave only 2 * j + 1 lines in previous
+                                            break;//while cycle is exited
+                                        }
+                                        else
+                                        {
+                                            previous.push_back(S_temp2);
+                                            if(S_temp2[S_temp2.size() - 1] == ';' || S_temp2[S_temp2.size() - 1] == '}' || S_temp2[S_temp2.size() - 1] == '{')
                                             {
-                                                string last = previous[previous.size() - 1];//last string from previous
-                                                //incomplete line can be found for example when defining a function in some of C coding styles
-                                                if(last[last.size() - 1] != ';' && last[last.size() - 1] != '}' && last[last.size() - 1] != '{')
-                                                {
-                                                    S_temp2 = previous[previous.size() - 1] + " " + S_temp2;//new S_temp is last + S_temp
-                                                    previous.pop_back();//because last element was incomplete - we will add it again - full this time
-                                                }
+                                                j++;//we added line to previous[]
                                             }
-
-                                            Delete_Extra_Spaces(&S_temp2);
-
-                                            std::string S_temp2_alt;
-                                            std::vector<string> temp2_unused;
-
-                                            if(Parametrization(S_temp2, &S_temp2_alt, &temp2_unused) == 1)//if we encountered a function declaration then
+                                        }
+                                    }
+                                    else//here we'll check that file doesn't end with incomplete line
+                                    {
+                                        if(previous.size() > 0)
+                                        {
+                                            string last = previous[previous.size() - 1];//last string from previous
+                                            //incomplete line can be found for example when defining a function in some of C coding styles
+                                            if(last[last.size() - 1] != ';' && last[last.size() - 1] != '}' && in_file.eof())//if file ends with incomplete line it's an error
                                             {
-                                                cout << "String number " << line << " contains NOT C lexeme." << endl;
-                                                cout << S_temp << endl << S_temp_alt << endl;
+                                                cout << "Unexpected end of file " << Paths[i] << endl;
                                                 return 1;
                                             }
-
-                                            if( S_temp2_alt.find("FUNCDEF(") != std::string::npos || S_temp2_alt.find("FUNCDEF (") != std::string::npos )
-                                            {
-                                                //j is current number of added lines beyond prev_size + 1. if it's 0 it means that we havent added any yet
-                                                //we have to leave only 2 * j + 1 lines in previous
-                                                break;//while cycle is exited
-                                            }
-                                            else
-                                            {
-                                                previous.push_back(S_temp2);
-                                                if(S_temp2[S_temp2.size() - 1] == ';' || S_temp2[S_temp2.size() - 1] == '}' || S_temp2[S_temp2.size() - 1] == '{')
-                                                {
-                                                    j++;//we added line to previous[]
-                                                }
-                                            }
                                         }
-                                        else//here we'll check that file doesn't end with incomplete line
-                                        {
-                                            if(previous.size() > 0)
-                                            {
-                                                string last = previous[previous.size() - 1];//last string from previous
-                                                //incomplete line can be found for example when defining a function in some of C coding styles
-                                                if(last[last.size() - 1] != ';' && last[last.size() - 1] != '}' && in_file.eof())//if file ends with incomplete line it's an error
-                                                {
-                                                    cout << "Unexpected end of file " << Paths[i] << endl;
-                                                    return 1;
-                                                }
-                                            }
-                                        }
-                                    //j++;
+                                    }
                                 }
 
                                 if(j < prev_size)//at this moment j shows how many lines we were able to add
@@ -312,7 +296,7 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                     int Found_Equal = 0;
                                     while( ix < Need_to_Compare.size() && Found_Equal != 1 )
                                     {
-                                        Found_Equal = Exemplars_Are_Equal( (*Clusters)[ Need_to_Compare[ix] ].commits[0].files[0].exemplars[0], Exmplr );
+                                        Found_Equal = Exemplars_Are_Equal( (*Clusters)[ Need_to_Compare[ix] ].commits[0].files[0].exemplars[0], Exmplr, path_to_fake_libc );
                                         if(Found_Equal != 1) ++ix;//so that at the end we will have either ix = clusters.size() => no equal exemplars were found
                                         //or ix value will be index of cluster, that contains equal exemplar
                                     }

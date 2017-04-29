@@ -455,3 +455,12 @@ def distanceAUT(s1, s2):
                 # print("%s%s" % (pre, node.name))
                 # print("")
     return (count1 + count2 - len(s1))
+
+#counts size of tree
+def AST_size( tree ):
+	count = 0
+	for pre, fill, node in RenderTree( tree ):
+		if node.is_leaf:
+			count += 1
+	return count
+

@@ -11,7 +11,7 @@ def quals(Line, n):
     # temp_str += str(qual) + " "
     # adding qualifiers to the temp_str.
     # They are added via IF because thus it won't depend on the order, in which quals were written in code
-    qual = Node("Qualifiers", parent = n)
+    qual = Node("Qualifiers: ", parent = n)
     temp_str = ""
     #const = Node("", parent=qual)
     #volatile = Node("", parent=qual)
@@ -29,7 +29,9 @@ def quals(Line, n):
     if ".Decl" in str(Line):
         if "static" in Line.storage:
             #static.name = "static"
-	return
+            temp_str += "static"
+    qual.name += temp_str
+    return
 
 
 # practically, this generates ast for arguments of operators like x += a + b + 0.5 + sizeof(const volatile int)
@@ -134,7 +136,8 @@ def ast_value(value, parent_node):
     # operand is return
     elif "Return" in str(value):
         n = Node("return", parent = parent_node)
-        ast_value(value.expr, n)
+        if not "None" in str(value.expr):
+            ast_value(value.expr, n)
         return
     # operand is a ternary operator
     elif "TernaryOp" in str(value):
@@ -452,3 +455,12 @@ def distanceAUT(s1, s2):
                 # print("%s%s" % (pre, node.name))
                 # print("")
     return (count1 + count2 - len(s1))
+
+#counts size of tree
+def AST_size( tree ):
+	count = 0
+	for pre, fill, node in RenderTree( tree ):
+		if node.is_leaf:
+			count += 1
+	return count
+
