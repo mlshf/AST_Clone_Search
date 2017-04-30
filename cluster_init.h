@@ -37,7 +37,7 @@ int string_found_C_extension(std::string path)
     //Found = Found || (path.find(".h++", path.size() - 4) != std::string::npos);
    // Found = Found || (path.find(".hxx", path.size() - 4) != std::string::npos);
 
-    Found = Found || (path.find(".h", path.size() - 2) != std::string::npos);
+    //Found = Found || (path.find(".h", path.size() - 2) != std::string::npos);
     //Found = Found || (path.find(".C", path.size() - 2) != std::string::npos);
     //Found = Found || (path.find(".cc", path.size() - 3) != std::string::npos);
     //Found = Found || (path.find(".cpp", path.size() - 4) != std::string::npos);
@@ -142,6 +142,9 @@ void Delete_Extra_Spaces(std::string* Str)//deletes space symbols except \n and 
 
     if( isspace((*Str)[Str->size() - 1]) && (*Str)[Str->size() - 1] != '\n')//deleting last space symbol
         Str->erase(Str->begin() + Str->size() - 1);
+
+    for( size_t i = Str->size() - 1; i >= 0 && isspace( (*Str)[i] ); --i)
+        Str->erase( Str->begin() + i );
 
 //serious doubt! deleting commentaries at end of line
     /*if( Str->rfind(";//") != string::npos )
@@ -329,6 +332,25 @@ int braces_balance(vector<string>* v_Str)
     return 0;
 }
 
+int write_to_file(string filename, vector<string> text)
+{
+    ofstream outfile;
+    outfile.open( filename.c_str() , ofstream::out | ofstream::trunc);
+
+    for(size_t i = 0; i < text.size(); ++i)
+    {
+        outfile << text[i] << endl;
+    }
+
+    outfile.close();
+
+    if(outfile.is_open())
+        outfile.close();
+
+    return 0;
+
+}
+
 //this function is needed because when initializing compared can be a part of original
 int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fake_libc)// returns 1 if clones, 0 if not
 {
@@ -374,7 +396,7 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
     std::vector<string> typedefs1 = gen_typedefs(ID_locs_1, ID_1), typedefs2 = gen_typedefs(ID_locs_2, ID_2);
 
     //were unable to genereate typedefs
-    if(typedefs1[0] == "FAIL" || typedefs2[0] == "FAIL")
+    if( ( typedefs1.size() > 0 && typedefs1[0] == "FAIL" ) || ( typedefs2.size() > 0 && typedefs2[0] == "FAIL" ) )
     {
         cout << "Could not create additional pseudo-typedefs." << endl;
         return 0;
@@ -413,47 +435,55 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
     second.insert(second.begin(), "#include <stdlib.h>");
     second.insert(second.begin(), "#include <stdio.h>");
 
-
     /*if(Perform_Comparison(&first, &second) == 1)//returns 1 if not clones, 0 if clones
         are_equal = 0;//so return value is 0 if not clones
 */
 
-    std::ofstream outfile1 ("CPR4_GCC_PP_C99_AST_1.c", std::ofstream::out | std::ofstream::trunc);
+    cout << "equality?" << endl;
 
-    for(size_t i = 0; i < first.size(); ++i)
-    {
-        outfile1 << first[i] << std::endl;
-    }
+    string filename = "CPR4_GCC_PP_C99_AST_1.c";
 
-    std::ofstream outfile2 ("CPR4_GCC_PP_C99_AST_2.c", std::ofstream::out | std::ofstream::trunc);
+    write_to_file(filename, first);
+
+    cout << "equality?" << endl;
+
+    /*filename = "CPR4_GCC_PP_C99_AST_2.c";
+
+    outfile1.open( filename.c_str(), ofstream::out | ofstream::trunc);
 
     for(size_t i = 0; i < second.size(); ++i)
     {
-        outfile2 << second[i] << std::endl;
+        outfile1 << second[i] << endl;
     }
 
-    outfile1.close();
+    outfile1.close();*/
 
-    exec_git_command("gcc -E -I" + path_to_fake_libc + "fake_libc_include CPR4_GCC_PP_C99_AST_1.c -o out_CPR4_GCC_PP_C99_AST_1.c");
+    cout << "equality?" << endl;
+
+    //exec_git_command("gcc -E -I" + path_to_fake_libc + "fake_libc_include CPR4_GCC_PP_C99_AST_1.c -o out_CPR4_GCC_PP_C99_AST_1.c");
     exec_git_command("gcc -E -I" + path_to_fake_libc + "fake_libc_include CPR4_GCC_PP_C99_AST_2.c -o out_CPR4_GCC_PP_C99_AST_2.c");
 
-    remove("CPR4_GCC_PP_C99_AST_1.c");
-    remove("CPR4_GCC_PP_C99_AST_2.c");
+    filename = "CPR4_GCC_PP_C99_AST_1.c";
+    remove( filename.c_str() );
+    filename = "CPR4_GCC_PP_C99_AST_2.c";
+    remove( filename.c_str() );
 
     vector<string> result;
-    exec_command("python3 " + path_to_fake_libc + "testing_file.py out_CPR4_GCC_PP_C99_AST_1.c out_CPR4_GCC_PP_C99_AST_2.c", &result);
+    exec_command("python3 " + path_to_fake_libc + "testing_file.py out_CPR4_GCC_PP_C99_AST_1.c out_CPR4_GCC_PP_C99_AST_1.c", &result);
+
+    filename = "out_CPR4_GCC_PP_C99_AST_1.c";
+    remove( filename.c_str() );
+    filename = "out_CPR4_GCC_PP_C99_AST_2.c";
+    remove( filename.c_str() );
 
     if(result.size() > 1)
     {
         result.erase( result.begin() + 1, result.end() );
     }
 
-    remove("out_CPR4_GCC_PP_C99_AST_1.c");
-    remove("out_CPR4_GCC_PP_C99_AST_2.c");
+    cout << result[0] << endl;
 
-    //cout << result[0] << endl;
-
-    if( result[0][0] != '1')
+    if( result.size() < 1 || result[0][0] != '1')
         return 0;
 
     return 1;
@@ -514,6 +544,7 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
         vector<long long> defect_lines;
         find_defects(&((*Paths)[i]), &defect_lines);
 
+        //for each processed file we list defects found by CppCheck
         cout << "Defect lines in " << (*Paths)[i] << " : " << endl;
         for(size_t iii = 0; iii < defect_lines.size();++iii)
             cout << defect_lines[iii] << endl;

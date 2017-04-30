@@ -47,16 +47,19 @@ int main(int argc, char* argv[])
     //181ed5489bfc64cc0f241f385f1d24f3241cb155 - example of SHA1 - used just for debugging
     if(argc == 4)//there must be strictly 3 command line arguments
     {
+        //FRAGMENT SIZE - size of context when reading source code
         stringstream S_FragmentSize(argv[2]);//turn FragmentSize char[] -> size_t
         size_t FragmentSize;
         S_FragmentSize >> FragmentSize;
 
+        //PATH_TO_EXE - path to program executable, where also fake_libc_include and python scripts should be located
         string path_to_exe(argv[0]);
         string key("Course_Realization");
         size_t pos = path_to_exe.rfind( key );
         if( pos != std::string::npos )
             path_to_exe.erase( path_to_exe.begin() + pos, path_to_exe.end() );
 
+        //checking the content of FRAGMENT SIZE
         if(FragmentSize < 0)//fragment size should be >= 0
         {
             cout << "Second parameter (<SIZE>) should be an integer value greater than 0, or equal." << endl;
@@ -68,7 +71,8 @@ int main(int argc, char* argv[])
         cout <<"#GIT COMMANDS EMULATION..." << endl << endl;
         //string S1("git rev-list --min-parents=0 HEAD");
 
-        vector<string> Start_SHA1;//reading init versions identificators (SHA-1) from file in argv[1]
+        //reading init versions identificators (SHA-1) from file in argv[1]
+        vector<string> Start_SHA1;
 
         if(Get_Start_SHA1(argv[1], &Start_SHA1) == 1)
         {
@@ -106,7 +110,7 @@ int main(int argc, char* argv[])
             return 1;
         }
 
-        //
+        //printing out contents of commit levels
         for(size_t i = 0; i < Commit_Levels.size(); i++)
         {
             if( i < 10 )//выравнивание т.к. появляются двузначные числа
@@ -153,6 +157,7 @@ int main(int argc, char* argv[])
 
         //producing output
         string BaseName(argv[3]);
+        exec_git_command("git checkout master");
         if( Output_Of_Result(&Clusters, BaseName) == 1 )//if we could not create all output files then we dump clusters in the console
         {
             cout << "Something went wrong with creating result with GraphViz..." << endl;
@@ -193,6 +198,7 @@ int main(int argc, char* argv[])
     }
 
     cout << endl;
+    //returning to initial repository state - when this program was not applied
     exec_git_command("git checkout master");
 
     return 0;

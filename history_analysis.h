@@ -121,8 +121,12 @@ void Find_Indices_of_Clusters(string S_compared, vector<Cluster>* Clusters, vect
         Exemplar exemplar2;
         exemplar2.fragment = second;
 
+        cout << "OK ?" << endl;
+
         if(Exemplars_Are_Equal(exemplar1, exemplar2, path_to_fake_libc) == 1)
             Need_to_Compare->push_back(i);
+
+        cout << "OK !!!" << endl;
     }
     return;
 }
@@ -199,13 +203,19 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                         }
                         else
                         {
+                            cout << line << endl;
+
                             vector<size_t> Need_to_Compare;//will contain indices of clusters, that have marked string similar to current string
-                            if( (S_temp.size() >= 2 && S_temp[0] == '/' && S_temp[1] == '/') || (S_temp.size() >= 1 && S_temp[0] == '#' ) )
+                            /*if( (S_temp.size() >= 2 && S_temp[0] == '/' && S_temp[1] == '/') || (S_temp.size() >= 1 && S_temp[0] == '#' ) )
                                 S_temp = " ";
                             else
                             {
                                 Find_Indices_of_Clusters(S_temp, Clusters, &Need_to_Compare, path_to_fake_libc);
-                            }
+                            }*/
+                            for(size_t www = 0; www < Clusters->size(); ++www)
+                                Need_to_Compare.push_back(www);
+
+                            cout << line << endl;
 
                             //if current line is in defect lines we need to form a fragment
                             if(!in_file.eof() && Need_to_Compare.size() > 0 )
@@ -304,6 +314,7 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                     while( ix < Need_to_Compare.size() && Found_Equal != 1 )
                                     {
                                         Found_Equal = Exemplars_Are_Equal( (*Clusters)[ Need_to_Compare[ix] ].commits[0].files[0].exemplars[0], Exmplr, path_to_fake_libc );
+                                        cout << Found_Equal << endl;
                                         if(Found_Equal != 1) ++ix;//so that at the end we will have either ix = clusters.size() => no equal exemplars were found
                                         //or ix value will be index of cluster, that contains equal exemplar
                                     }
@@ -312,7 +323,7 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                         ix = Need_to_Compare[ix];
                                     //now ix contains not index of element of Need_to_Compare that contains index of needed cluster, but index of needed cluster
 
-                                    if(Found_Equal == 1 && ix != Need_to_Compare.size() )//we have found equal exemplar
+                                    if(Found_Equal == 1 && ix < Need_to_Compare.size() )//we have found equal exemplar
                                     {
                                         int Commit_Exists = 0;//checking if clusters->[ix] contains commit with SHA1 = (*Commit_Levels)[i].SHA1_of_commits[j]
                                         int index_of_last_commit = (*Clusters)[ix].commits.size();//contains index of last commit in (*Clusters)[ix]
