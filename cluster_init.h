@@ -256,25 +256,52 @@ vector<string> gen_typedefs(vector<vector<size_t>> ID_locations, vector<vector<s
 int braces_balance(vector<string>* v_Str)
 {
     int l_brace_counter = 0, r_brace_counter = 0;
+    size_t r_brace_beg_counter = 0;
 
     for(size_t i = 0; i < v_Str->size(); ++i)//each line
     {
         string line = (*v_Str)[i];
 
-        if(line[line.size() - 1] == '{')
-        {
-            ++l_brace_counter;
-        }
         if(line[line.size() - 1] == '}')
         {
-            ++r_brace_counter;
+            if (l_brace_counter == 0)
+            {
+                ++r_brace_beg_counter;
+            }
+            else
+            {
+                ++r_brace_counter;
+            }
+
         }
         else
         {
             if(line.size() >= 2 && line[line.size() - 1] == ';' && line[line.size() - 2] == '}')
-                ++r_brace_counter;
+            {
+                if (l_brace_counter == 0)
+                {
+                    ++r_brace_beg_counter;
+                }
+                else
+                {
+                    ++r_brace_counter;
+                }
+            }
+        }
+
+        if(line[line.size() - 1] == '{')
+        {
+            ++l_brace_counter;
         }
     }
+
+    string add_r_brace_beg;
+    for(size_t q = 0; q < r_brace_beg_counter; ++q)
+    {
+        add_r_brace_beg += "{";
+    }
+    v_Str->insert(v_Str->begin(), add_r_brace_beg);
+
 
     if(l_brace_counter > r_brace_counter)
     {
@@ -415,6 +442,7 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
 
     vector<string> result;
     exec_command("python3 " + path_to_fake_libc + "testing_file.py out_CPR4_GCC_PP_C99_AST_1.c out_CPR4_GCC_PP_C99_AST_2.c", &result);
+
     if(result.size() > 1)
     {
         result.erase( result.begin() + 1, result.end() );
@@ -423,10 +451,12 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
     remove("out_CPR4_GCC_PP_C99_AST_1.c");
     remove("out_CPR4_GCC_PP_C99_AST_2.c");
 
-    if( result[0] == "Failed to parse file" )
+    //cout << result[0] << endl;
+
+    if( result[0][0] != '1')
         return 0;
 
-    return std::stoi( result[0] );
+    return 1;
 }
 
 //this function will find locations of defects in file PATH and store them in RESULT
@@ -453,7 +483,8 @@ int find_defects(string* path, vector<long long>* result)
         {
             size_t i_beg = S_temp.find(":"), i_end = S_temp.find("]");//we leave only line number
             S_temp = S_temp.substr(i_beg + 1, i_end - i_beg - 1);
-            result->push_back(std::stoll(S_temp));//string is translated to long long
+            if( result->end() == find(result->begin(), result->end(), std::stoll(S_temp)) )
+                result->push_back(std::stoll(S_temp));//string is translated to long long
         }
     }
 
@@ -549,7 +580,7 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                         cout << (*Paths)[i] << " : " << S_temp << " , " << S_temp[0] << endl;*/
 
                     //if current line is in defect lines we need to form a fragment
-                    if(!in_file.eof() && defect_lines.end() != find(defect_lines.begin(), defect_lines.end(), line))
+                    if( !in_file.eof() && defect_lines.end() != find(defect_lines.begin(), defect_lines.end(), line) )
                     {
                         Exemplar Exmplr;
                         Exmplr.line = line;

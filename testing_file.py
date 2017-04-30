@@ -75,6 +75,13 @@ rules2 = []
 
 astmscp.createAUT(ast1_root, ast2_root, r, num, rules1, rules2)
 
+distance = astmscp.distanceAUT(rules1, rules2)
+#if distance is <= 4/3 * sqrt( size1, size2 )
+if distance * distance * 9 <=  astmscp.AST_size( ast1_root ) * astmscp.AST_size( ast2_root ) * 16:
+	print(1)
+else:
+	print(0)
+
 if "-show" in sys.argv:
     #ast1.show()
     print("AST #1:\n")
@@ -88,11 +95,11 @@ if "-show" in sys.argv:
             i.show()
     #ast2.show()
     print("")
-    print("\nAUT:\n")
+    print("\nAST #1:\n")
     for pre, fill, node in RenderTree(ast1_root):
         print("%s%s" % (pre, node.name))
     print("")
-    print("\nAUT:\n")
+    print("\nAST #2:\n")
     for pre, fill, node in RenderTree(ast2_root):
         print("%s%s" % (pre, node.name))
     print("")
@@ -100,12 +107,5 @@ if "-show" in sys.argv:
     for pre, fill, node in RenderTree(r):
         print("%s%s" % (pre, node.name))
     print("")
-
-distance = astmscp.distanceAUT(rules1, rules2)
-#if distance is <= 4/3 * sqrt( size1, size2 )
-if distance * distance * 9 <=  AST_size( ast1_root ) * AST_size( ast2_root ) * 16:
-	print(1)
-else:
-	print(0)
 
 #print(aString) #This prints "None" instead of printing the parse tree
