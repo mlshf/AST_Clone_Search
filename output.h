@@ -30,6 +30,8 @@ int Output_Of_Result(vector<Cluster>* Clusters, string BaseName)
             return 1;
         }
 
+        //cout << "1_" << i << endl;
+
         output_file << "digraph Cluster" << endl << "{" << endl;
 
             output_file << "subgraph Commits" << endl << "{" << endl;
@@ -41,12 +43,17 @@ int Output_Of_Result(vector<Cluster>* Clusters, string BaseName)
                     converter.clear();
                     converter.str(string());
                     converter << j + 1;
+
                     string Commit_j = "\"Commit " + converter.str() + "\" [label = \"{Commit ";
                     converter.clear();
                     converter.str(string());
                     converter << j + 1;
+
                     Commit_j += converter.str() + " | SHA1 : \\n ";
                     Commit_j += (*Clusters)[i].commits[j].SHA1;
+
+                    //cout << "OK ?" << i << endl;
+
                     if(j == 0)
                     {
                         Commit_j += " | Original : \\n ";
@@ -60,16 +67,22 @@ int Output_Of_Result(vector<Cluster>* Clusters, string BaseName)
                         converter.clear();
                         converter.str(string());
                         converter << (*Clusters)[i].commits[j].files[0].FilePath;
+
                         Commit_j += converter.str() += " \\n Line : ";
                         converter.clear();
                         converter.str(string());
                         converter << (*Clusters)[i].commits[j].files[0].exemplars[0].line;
+
                         Commit_j += converter.str() + " \\n Size : ";
                         converter.clear();
                         converter.str(string());
                         converter << (*Clusters)[i].commits[j].files[0].exemplars[0].fragment.size();
+
                         Commit_j += converter.str();
                     }
+
+                    //cout << "OK !" << i << endl;
+
                     Commit_j += "}\"];";
 
                     output_file << Commit_j << endl;
@@ -85,10 +98,12 @@ int Output_Of_Result(vector<Cluster>* Clusters, string BaseName)
                     converter.clear();
                     converter.str(string());
                     converter << j + 1;
+
                     string File_k = "\"Commit " + converter.str() + " File ";
                     converter.clear();
                     converter.str(string());
                     converter << k + 1;
+
                     File_k += converter.str() + "\" [shape = \"record\", label = \"{" + (*Clusters)[i].commits[j].files[k].FilePath;
                     File_k += " | " + (*Clusters)[i].commits[j].files[k].FileState;
 
@@ -98,10 +113,12 @@ int Output_Of_Result(vector<Cluster>* Clusters, string BaseName)
                         converter.clear();
                         converter.str(string());
                         converter << (*Clusters)[i].commits[j].files[k].exemplars[n].line;
+
                         File_k += converter.str() + " \\n Size : ";
                         converter.clear();
                         converter.str(string());
                         converter << (*Clusters)[i].commits[j].files[k].exemplars[n].fragment.size();
+
                         File_k += converter.str();
                     }
 
@@ -118,18 +135,22 @@ int Output_Of_Result(vector<Cluster>* Clusters, string BaseName)
                 converter.clear();
                 converter.str(string());
                 converter << j + 1;
+
                 string Structure = "\"Commit " + converter.str() + "\"";
                 for(size_t k = 0; k < (*Clusters)[i].commits[j].files.size(); ++k)
                 {
                     converter.clear();
                     converter.str(string());
                     converter << j + 1;
+
                     Structure += " -> \"Commit " + converter.str() + " File ";
                     converter.clear();
                     converter.str(string());
                     converter << k + 1;
+
                     Structure += converter.str() + "\"";
                 }
+
                 Structure += ";";
                 output_file << Structure << endl;
             }

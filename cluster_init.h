@@ -265,7 +265,9 @@ int braces_balance(vector<string>* v_Str)
     {
         string line = (*v_Str)[i];
 
-        if(line[line.size() - 1] == '}')
+        size_t j = line.size() - 1;
+
+        /*if(line[line.size() - 1] == '}')
         {
             if (l_brace_counter == 0)
             {
@@ -290,11 +292,53 @@ int braces_balance(vector<string>* v_Str)
                     ++r_brace_counter;
                 }
             }
+        }*/
+
+        char endflag = 0;
+        while(j >= 0 && endflag != 1)
+        {
+            if( line[j] == '}' )
+            {
+                if (l_brace_counter == 0)
+                {
+                    ++r_brace_beg_counter;
+                }
+                else
+                {
+                    ++r_brace_counter;
+                }
+                --j;
+            }
+            else
+            {
+                if( j >= 1 && line[j] == ';' && line[j - 1] == '}' )
+                {
+                    if (l_brace_counter == 0)
+                    {
+                        ++r_brace_beg_counter;
+                    }
+                    else
+                    {
+                        ++r_brace_counter;
+                    }
+                    j -= 2;
+                }
+                else
+                {
+                    endflag = 1;
+                }
+            }
         }
 
-        if(line[line.size() - 1] == '{')
+        /*if(line[line.size() - 1] == '{')
         {
             ++l_brace_counter;
+        }*/
+        j = 0;
+        while( j < line.size() && line[j] == '{' )
+        {
+            ++l_brace_counter;
+            ++j;
         }
     }
 
@@ -363,6 +407,13 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
         big = Compared;
     }
 
+    /*cout << small.fragment.size() << " " << big.fragment.size() << endl;
+    size_t qwe = 0;
+    while(qwe < small.fragment.size())
+        {cout << small.fragment[qwe] << "         " << big.fragment[qwe] << endl; ++qwe;}
+    while(qwe < big.fragment.size())
+        {cout << "                     " << big.fragment[qwe] << endl; ++qwe;}*/
+
     //making fragments have same size
     offset = abs(offset);
     size_t i = 0;
@@ -417,7 +468,7 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
     //...
     //return;}
     //which is needed for fragment to be processed with PyCParser
-    first.push_back("return;}");
+    first.push_back("}");
     first.insert(first.begin(), "void ast1_func(){");
     for(size_t i = 0; i < typedefs1.size(); ++i)
     {
@@ -426,7 +477,7 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
     first.insert(first.begin(), "#include <stdlib.h>");
     first.insert(first.begin(), "#include <stdio.h>");
 
-    second.push_back("return;}");
+    second.push_back("}");
     second.insert(second.begin(), "void ast2_func(){");
     for(size_t i = 0; i < typedefs2.size(); ++i)
     {
@@ -439,28 +490,21 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
         are_equal = 0;//so return value is 0 if not clones
 */
 
-    cout << "equality?" << endl;
+    //cout << "equality?" << endl;
 
     string filename = "CPR4_GCC_PP_C99_AST_1.c";
 
     write_to_file(filename, first);
 
-    cout << "equality?" << endl;
+    //cout << "equality?" << endl;
 
-    /*filename = "CPR4_GCC_PP_C99_AST_2.c";
+    filename = "CPR4_GCC_PP_C99_AST_2.c";
 
-    outfile1.open( filename.c_str(), ofstream::out | ofstream::trunc);
+    write_to_file(filename, second);
 
-    for(size_t i = 0; i < second.size(); ++i)
-    {
-        outfile1 << second[i] << endl;
-    }
+    //cout << "equality?" << endl;
 
-    outfile1.close();*/
-
-    cout << "equality?" << endl;
-
-    //exec_git_command("gcc -E -I" + path_to_fake_libc + "fake_libc_include CPR4_GCC_PP_C99_AST_1.c -o out_CPR4_GCC_PP_C99_AST_1.c");
+    exec_git_command("gcc -E -I" + path_to_fake_libc + "fake_libc_include CPR4_GCC_PP_C99_AST_1.c -o out_CPR4_GCC_PP_C99_AST_1.c");
     exec_git_command("gcc -E -I" + path_to_fake_libc + "fake_libc_include CPR4_GCC_PP_C99_AST_2.c -o out_CPR4_GCC_PP_C99_AST_2.c");
 
     filename = "CPR4_GCC_PP_C99_AST_1.c";
@@ -469,7 +513,7 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
     remove( filename.c_str() );
 
     vector<string> result;
-    exec_command("python3 " + path_to_fake_libc + "testing_file.py out_CPR4_GCC_PP_C99_AST_1.c out_CPR4_GCC_PP_C99_AST_1.c", &result);
+    exec_command("python3 " + path_to_fake_libc + "testing_file.py out_CPR4_GCC_PP_C99_AST_1.c out_CPR4_GCC_PP_C99_AST_2.c", &result);
 
     filename = "out_CPR4_GCC_PP_C99_AST_1.c";
     remove( filename.c_str() );
@@ -483,7 +527,7 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
 
     cout << result[0] << endl;
 
-    if( result.size() < 1 || result[0][0] != '1')
+    if( result.size() < 1 || result[0].size() < 1 || result[0][0] != '1')
         return 0;
 
     return 1;
@@ -579,9 +623,32 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                     //incomplete line can be found for example when defining a function in some of C coding styles
                     if(last[last.size() - 1] != ';' && last[last.size() - 1] != '}' && last[last.size() - 1] != '{')
                     {
-                        S_temp = previous[previous.size() - 1] + " " + S_temp;//new S_temp is last + S_temp
+                        S_temp = last + " " + S_temp;//new S_temp is last + S_temp
                         previous.pop_back();//because last element was incomplete - we will add it again - full this time
                     }
+                    else
+                    {
+                        if(last == "{" || last == ";")
+                        {
+                            S_temp = last + S_temp;
+                            previous.pop_back();
+                        }
+                        else
+                        {
+                            if(S_temp == "}" || S_temp == "};" || S_temp == ";")
+                            {
+                                S_temp = last + S_temp;
+                                previous.pop_back();
+                                previous.push_back(S_temp);
+                                continue;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    if(S_temp == "}" || S_temp == "};")
+                        continue;
                 }
 
                 Delete_Extra_Spaces(&S_temp);
@@ -599,9 +666,12 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                 //here we check if we encountered a function declaration - if so skip it
                 string PFPF("CBP4_PARAMETERIZED_FUNCNAME_POSSIBLE_FUNCDEF");
                 if( ( outstr.find( PFPF + "(" ) != string::npos || outstr.find( PFPF + " (") != string::npos ) && outstr[ outstr.size() - 1] != ';'
-                && outstr.find("do") != 0 && outstr.find("else") != 0 && outstr.find("enum") != 0 && outstr.find("for") != 0 && outstr.find("if") != 0 && outstr.find("sizeof") != 0
-                && outstr.find("return") != 0 && outstr.find("switch") != 0 && outstr.find("while") != 0 && outstr.find("{") != 0 && outstr.find("case") != 0 )
+                && outstr.find("do") != 0 && outstr.find("else") != 0 && outstr.find("enum") != 0 && outstr.find("for") != 0 && outstr.find("if") != 0
+                && outstr.find("sizeof") != 0 && outstr.find("return") != 0 && outstr.find("switch") != 0 && outstr.find("while") != 0 && outstr.find("{") != 0
+                && outstr.find("case") != 0  && outstr[0] != '{' && outstr[0] != ';' && outstr[0] != '{' && outstr[0] != ';')
                 {
+                    //cout << "CLEAR!!!" << endl;
+                    //cout << S_temp << endl << outstr << endl;
                     previous.clear();//at this point we have some strings in PREVIOUS and we encountered a string that contains
                 }
                 else
@@ -618,6 +688,10 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
 
                         int j = 0, prev_size = previous.size();//prev_size - size of previous[] before adding string with weakness
                         //j counts number of lines that have been added to previous[]
+                        /*cout << "j 0 prev " << prev_size << endl;
+                        for(int qwe = 0; qwe < prev_size; ++qwe)
+                            cout << previous[qwe] << endl;*/
+
                         previous.push_back(S_temp);
 
                         while(j < prev_size && !in_file.eof())
@@ -643,8 +717,26 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                         //incomplete line can be found for example when defining a function in some of C coding styles
                                         if(last[last.size() - 1] != ';' && last[last.size() - 1] != '}' && last[last.size() - 1] != '{')
                                         {
-                                            S_temp2 = previous[previous.size() - 1] + " " + S_temp2;//new S_temp is last + S_temp
+                                            S_temp2 = last + " " + S_temp2;//new S_temp is last + S_temp
                                             previous.pop_back();//because last element was incomplete - we will add it again - full this time
+                                        }
+                                        else
+                                        {
+                                            if(last == "{")
+                                            {
+                                                S_temp2 = last + S_temp2;
+                                                previous.pop_back();
+                                            }
+                                            else
+                                            {
+                                                if(S_temp2 == "}" || S_temp2 == "};" || S_temp2 == ";")
+                                                {
+                                                    S_temp2 = last + S_temp2;
+                                                    previous.pop_back();
+                                                    previous.push_back(S_temp2);
+                                                    continue;
+                                                }
+                                            }
                                         }
                                     }
 
@@ -661,9 +753,11 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                     }
 
                                     //here we check if we encountered a function declaration - if so skip it
-                                    if( ( outstr2.find( PFPF + "(" ) != string::npos || outstr2.find( PFPF + " (") != string::npos ) && outstr2[ outstr2.size() - 1] != ';'
-                                    && outstr2.find("do") != 0 && outstr2.find("else") != 0 && outstr2.find("enum") != 0 && outstr2.find("for") != 0 && outstr2.find("if") != 0 && outstr2.find("sizeof") != 0
-                                    && outstr2.find("return") != 0 && outstr2.find("switch") != 0 && outstr2.find("while") != 0 && outstr2.find("{") != 0 && outstr2.find("case") != 0 )
+                                    if( ( outstr2.find( PFPF + "(" ) != string::npos || outstr2.find( PFPF + " (") != string::npos )
+                                    && outstr2[outstr2.size() - 1] != ';' && outstr2.find("do") != 0 && outstr2.find("else") != 0 && outstr2.find("enum") != 0
+                                    && outstr2.find("for") != 0 && outstr2.find("if") != 0 && outstr2.find("sizeof") != 0 && outstr2.find("return") != 0
+                                    && outstr2.find("switch") != 0 && outstr2.find("while") != 0 && outstr2.find("{") != 0 && outstr2.find("case") != 0
+                                    && outstr2[0] != '{' && outstr2[0] != ';')
                                     {
                                         //j is current number of added lines beyond prev_size + 1. if it's 0 it means that we havent added any yet
                                         //we have to leave only 2 * j + 1 lines in previous

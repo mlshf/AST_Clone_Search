@@ -121,12 +121,12 @@ void Find_Indices_of_Clusters(string S_compared, vector<Cluster>* Clusters, vect
         Exemplar exemplar2;
         exemplar2.fragment = second;
 
-        cout << "OK ?" << endl;
+        //cout << "OK ?" << endl;
 
         if(Exemplars_Are_Equal(exemplar1, exemplar2, path_to_fake_libc) == 1)
             Need_to_Compare->push_back(i);
 
-        cout << "OK !!!" << endl;
+        //cout << "OK !!!" << endl;
     }
     return;
 }
@@ -176,9 +176,32 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                             //incomplete line can be found for example when defining a function in some of C coding styles
                             if(last[last.size() - 1] != ';' && last[last.size() - 1] != '}' && last[last.size() - 1] != '{')
                             {
-                                S_temp = previous[previous.size() - 1] + " " + S_temp;//new S_temp is last + S_temp
+                                S_temp = last + " " + S_temp;//new S_temp is last + S_temp
                                 previous.pop_back();//because last element was incomplete - we will add it again - full this time
                             }
+                            else
+                            {
+                                if(last == "{" || last == ";")
+                                {
+                                    S_temp = last + S_temp;
+                                    previous.pop_back();
+                                }
+                                else
+                                {
+                                    if(S_temp == "}" || S_temp == "};" || S_temp == ";")
+                                    {
+                                        S_temp = last + S_temp;
+                                        previous.pop_back();
+                                        previous.push_back(S_temp);
+                                        continue;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if(S_temp == "}" || S_temp == "};")
+                                continue;
                         }
 
                         Delete_Extra_Spaces(&S_temp);
@@ -196,26 +219,27 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                         //here we check if we encountered a function declaration - if so skip it
                         string PFPF("CBP4_PARAMETERIZED_FUNCNAME_POSSIBLE_FUNCDEF");
                         if( ( outstr.find( PFPF + "(" ) != string::npos || outstr.find( PFPF + " (") != string::npos ) && outstr[ outstr.size() - 1] != ';'
-                        && outstr.find("do") != 0 && outstr.find("else") != 0 && outstr.find("enum") != 0 && outstr.find("for") != 0 && outstr.find("if") != 0 && outstr.find("sizeof") != 0
-                        && outstr.find("return") != 0 && outstr.find("switch") != 0 && outstr.find("while") != 0 && outstr.find("{") != 0 && outstr.find("case") != 0 )
+                        && outstr.find("do") != 0 && outstr.find("else") != 0 && outstr.find("enum") != 0 && outstr.find("for") != 0 && outstr.find("if") != 0
+                        && outstr.find("sizeof") != 0 && outstr.find("return") != 0 && outstr.find("switch") != 0 && outstr.find("while") != 0
+                        && outstr.find("{") != 0 && outstr.find("case") != 0  && outstr[0] != '{' && outstr[0] != ';' && outstr[0] != '{' && outstr[0] != ';')
                         {
                             previous.clear();//at this point we have some strings in PREVIOUS and we encountered a string that contains
                         }
                         else
                         {
-                            cout << line << endl;
+                            //cout << line << endl;
 
                             vector<size_t> Need_to_Compare;//will contain indices of clusters, that have marked string similar to current string
-                            /*if( (S_temp.size() >= 2 && S_temp[0] == '/' && S_temp[1] == '/') || (S_temp.size() >= 1 && S_temp[0] == '#' ) )
+                            if( (S_temp.size() >= 2 && S_temp[0] == '/' && S_temp[1] == '/') || (S_temp.size() >= 1 && S_temp[0] == '#' ) )
                                 S_temp = " ";
                             else
                             {
                                 Find_Indices_of_Clusters(S_temp, Clusters, &Need_to_Compare, path_to_fake_libc);
-                            }*/
-                            for(size_t www = 0; www < Clusters->size(); ++www)
-                                Need_to_Compare.push_back(www);
+                            }
+                            /*for(size_t www = 0; www < Clusters->size(); ++www)
+                                Need_to_Compare.push_back(www);*/
 
-                            cout << line << endl;
+                            //cout << line << endl;
 
                             //if current line is in defect lines we need to form a fragment
                             if(!in_file.eof() && Need_to_Compare.size() > 0 )
@@ -245,8 +269,26 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                             //incomplete line can be found for example when defining a function in some of C coding styles
                                             if(last[last.size() - 1] != ';' && last[last.size() - 1] != '}' && last[last.size() - 1] != '{')
                                             {
-                                                S_temp2 = previous[previous.size() - 1] + " " + S_temp2;//new S_temp is last + S_temp
+                                                S_temp2 = last + " " + S_temp2;//new S_temp is last + S_temp
                                                 previous.pop_back();//because last element was incomplete - we will add it again - full this time
+                                            }
+                                            else
+                                            {
+                                                if(last == "{")
+                                                {
+                                                    S_temp2 = last + S_temp2;
+                                                    previous.pop_back();
+                                                }
+                                                else
+                                                {
+                                                    if(S_temp2 == "}" || S_temp2 == "};" || S_temp2 == ";")
+                                                    {
+                                                        S_temp2 = last + S_temp2;
+                                                        previous.pop_back();
+                                                        previous.push_back(S_temp2);
+                                                        continue;
+                                                    }
+                                                }
                                             }
                                         }
 
@@ -263,9 +305,11 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                         }
 
                                         //here we check if we encountered a function declaration - if so skip it
-                                        if( ( outstr2.find( PFPF + "(" ) != string::npos || outstr2.find( PFPF + " (") != string::npos ) && outstr2[ outstr2.size() - 1] != ';'
-                                        && outstr2.find("do") != 0 && outstr2.find("else") != 0 && outstr2.find("enum") != 0 && outstr2.find("for") != 0 && outstr2.find("if") != 0 && outstr2.find("sizeof") != 0
-                                        && outstr2.find("return") != 0 && outstr2.find("switch") != 0 && outstr2.find("while") != 0 && outstr2.find("{") != 0 && outstr2.find("case") != 0 )
+                                        if( ( outstr2.find( PFPF + "(" ) != string::npos || outstr2.find( PFPF + " (") != string::npos )
+                                        && outstr2[outstr2.size() - 1] != ';' && outstr2.find("do") != 0 && outstr2.find("else") != 0 && outstr2.find("enum") != 0
+                                        && outstr2.find("for") != 0 && outstr2.find("if") != 0 && outstr2.find("sizeof") != 0 && outstr2.find("return") != 0
+                                        && outstr2.find("switch") != 0 && outstr2.find("while") != 0 && outstr2.find("{") != 0 && outstr2.find("case") != 0
+                                        && outstr2[0] != '{' && outstr2[0] != ';')
                                         {
                                             //j is current number of added lines beyond prev_size + 1. if it's 0 it means that we havent added any yet
                                             //we have to leave only 2 * j + 1 lines in previous
@@ -314,16 +358,16 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                     while( ix < Need_to_Compare.size() && Found_Equal != 1 )
                                     {
                                         Found_Equal = Exemplars_Are_Equal( (*Clusters)[ Need_to_Compare[ix] ].commits[0].files[0].exemplars[0], Exmplr, path_to_fake_libc );
-                                        cout << Found_Equal << endl;
+                                        //cout << Found_Equal << endl;
                                         if(Found_Equal != 1) ++ix;//so that at the end we will have either ix = clusters.size() => no equal exemplars were found
                                         //or ix value will be index of cluster, that contains equal exemplar
                                     }
 
-                                    if(ix != Need_to_Compare.size())
+                                    if(Found_Equal == 1)
                                         ix = Need_to_Compare[ix];
                                     //now ix contains not index of element of Need_to_Compare that contains index of needed cluster, but index of needed cluster
 
-                                    if(Found_Equal == 1 && ix < Need_to_Compare.size() )//we have found equal exemplar
+                                    if(Found_Equal == 1)//we have found equal exemplar
                                     {
                                         int Commit_Exists = 0;//checking if clusters->[ix] contains commit with SHA1 = (*Commit_Levels)[i].SHA1_of_commits[j]
                                         int index_of_last_commit = (*Clusters)[ix].commits.size();//contains index of last commit in (*Clusters)[ix]
