@@ -39,7 +39,7 @@ int Are_There_Equal_Strings(vector<string>* VS, string S)
 //creates vector of levels of commits
 //level 0 - starting commit
 //level i+1 - level of commits-descendants of commits from level i
-int Fill_Commit_Levels(vector<Commit_Level>* Commit_Levels, vector<string>* Start_SHA1)
+int Fill_Commit_Levels(vector<Commit_Level>* Commit_Levels, vector<string>* Start_SHA1, char showflag, ofstream& logfile)
 {
     size_t i = 1;//number of current level; 1 at the beginning of the process
     int unchecked_commits = (int)(*Commit_Levels)[i - 1].SHA1_of_commits.size();//as we work we have two sets of commits
@@ -57,9 +57,10 @@ int Fill_Commit_Levels(vector<Commit_Level>* Commit_Levels, vector<string>* Star
         for(size_t j = 0; j < (*Commit_Levels)[i - 1].SHA1_of_commits.size(); ++j)
         {
             vector<string> Vector_of_SHA1;
-            if(exec_git_getsha1((*Commit_Levels)[i - 1].SHA1_of_commits[j], &Vector_of_SHA1) == 1)
+            if(exec_git_getsha1((*Commit_Levels)[i - 1].SHA1_of_commits[j], &Vector_of_SHA1, showflag, logfile) == 1)
             {
-                cout << "COULD NOT FILL COMMIT LEVELS..." << endl;
+                if(showflag == 1)
+                    logfile << "COULD NOT FILL COMMIT LEVELS..." << endl;
                 return 1;
             }
 
@@ -102,7 +103,7 @@ int Fill_Commit_Levels(vector<Commit_Level>* Commit_Levels, vector<string>* Star
     return 0;
 }
 
-void Find_Indices_of_Clusters(string S_compared, vector<Cluster>* Clusters, vector<size_t>* Need_to_Compare, string path_to_fake_libc)//returns number of cluster that contains similar original string or -1 otherwise
+void Find_Indices_of_Clusters(string S_compared, vector<Cluster>* Clusters, vector<size_t>* Need_to_Compare, string path_to_fake_libc, char showflag, ofstream& logfile)//returns number of cluster that contains similar original string or -1 otherwise
 {
     vector<string> first;
     first.push_back(S_compared);
@@ -123,7 +124,7 @@ void Find_Indices_of_Clusters(string S_compared, vector<Cluster>* Clusters, vect
 
         //cout << "OK ?" << endl;
 
-        if(Exemplars_Are_Equal(exemplar1, exemplar2, path_to_fake_libc) == 1)
+        if(Exemplars_Are_Equal(exemplar1, exemplar2, path_to_fake_libc, showflag, logfile) == 1)
             Need_to_Compare->push_back(i);
 
         //cout << "OK !!!" << endl;
@@ -131,7 +132,7 @@ void Find_Indices_of_Clusters(string S_compared, vector<Cluster>* Clusters, vect
     return;
 }
 
-int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Clusters, size_t FragmentSize, string path_to_fake_libc)
+int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Clusters, size_t FragmentSize, string path_to_fake_libc, char showflag, ofstream& logfile)
 {
     for(size_t i = 1; i < Commit_Levels->size(); ++i)
     {
@@ -139,17 +140,18 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
         {
             string git_command("git checkout ");
             git_command += (*Commit_Levels)[i].SHA1_of_commits[j];
-            if(exec_git_command(git_command) == 1)//checking out to a commit from commit_levels
+            if(exec_git_command(git_command, showflag, logfile) == 1)//checking out to a commit from commit_levels
                 return 1;
             vector<string> Paths;//stores paths to all files of current commit with allowed extension
-            list_dir_contents(&Paths);
+            list_dir_contents(&Paths, showflag, logfile);
 
             for(size_t k = 0; k < Paths.size(); ++k)
             {
                 ifstream in_file(Paths[k].c_str(), ios_base::in);
                 if(!in_file.is_open())
                 {
-                    std::cout << "FILE : " << Paths[k] << " COULD NOT BE OPENED. ABORTING..." << std::endl;
+                    if(showflag == 1)
+                        logfile << "FILE : " << Paths[k] << " COULD NOT BE OPENED. ABORTING..." << std::endl;
                     return 1;
                 }
 
@@ -209,10 +211,13 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                         std::string outstr;
                         std::vector<string> temp_unused;
 
-                        if(Parametrization(S_temp, &outstr, &temp_unused) == 1)//if we encountered a function declaration then
+                        if(Parametrization(S_temp, &outstr, &temp_unused, showflag, logfile) == 1)//if we encountered a function declaration then
                         {//we'll check if we encountered a function declaration and skip it if so
-                            cout << "String number " << line << " contains NOT C lexeme." << endl;
-                            cout << S_temp << endl << outstr << endl;
+                            if(showflag == 1)
+                            {
+                                logfile << "String number " << line << " contains NOT C lexeme." << endl;
+                                logfile << S_temp << endl << outstr << endl;
+                            }
                             return 1;
                         }
 
@@ -234,7 +239,7 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                 S_temp = " ";
                             else
                             {
-                                Find_Indices_of_Clusters(S_temp, Clusters, &Need_to_Compare, path_to_fake_libc);
+                                Find_Indices_of_Clusters(S_temp, Clusters, &Need_to_Compare, path_to_fake_libc, showflag, logfile);
                             }
                             /*for(size_t www = 0; www < Clusters->size(); ++www)
                                 Need_to_Compare.push_back(www);*/
@@ -247,11 +252,11 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                 Exemplar Exmplr;
                                 Exmplr.line = line;
 
-                                int j = 0, prev_size = previous.size();//prev_size - size of previous[] before adding string with weakness
+                                int t = 0, prev_size = previous.size();//prev_size - size of previous[] before adding string with weakness
                                 //j counts number of lines that have been added to previous[]
                                 previous.push_back(S_temp);
 
-                                while(j < prev_size && !in_file.eof())
+                                while(t < prev_size && !in_file.eof())
                                 {
                                     std::string S_temp2;
                                     std::getline(in_file, S_temp2);
@@ -297,10 +302,13 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                         std::string outstr2;
                                         std::vector<string> temp2_unused;
 
-                                        if(Parametrization(S_temp2, &outstr2, &temp2_unused) == 1)//if we encountered a function declaration then
+                                        if(Parametrization(S_temp2, &outstr2, &temp2_unused, showflag, logfile) == 1)//if we encountered a function declaration then
                                         {
-                                            cout << "String number " << line << " contains NOT C lexeme." << endl;
-                                            cout << S_temp << endl << outstr2 << endl;
+                                            if(showflag == 1)
+                                            {
+                                                logfile << "String number " << line << " contains NOT C lexeme." << endl;
+                                                logfile << S_temp << endl << outstr2 << endl;
+                                            }
                                             return 1;
                                         }
 
@@ -320,7 +328,7 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                             previous.push_back(S_temp2);
                                             if(S_temp2[S_temp2.size() - 1] == ';' || S_temp2[S_temp2.size() - 1] == '}' || S_temp2[S_temp2.size() - 1] == '{')
                                             {
-                                                j++;//we added line to previous[]
+                                                t++;//we added line to previous[]
                                             }
                                         }
                                     }
@@ -332,16 +340,17 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                             //incomplete line can be found for example when defining a function in some of C coding styles
                                             if(last[last.size() - 1] != ';' && last[last.size() - 1] != '}' && in_file.eof())//if file ends with incomplete line it's an error
                                             {
-                                                cout << "Unexpected end of file " << Paths[i] << endl;
+                                                if(showflag == 1)
+                                                    logfile << "Unexpected end of file " << Paths[i] << endl;
                                                 return 1;
                                             }
                                         }
                                     }
                                 }
 
-                                if(j < prev_size)//at this moment j shows how many lines we were able to add
+                                if(t < prev_size)//at this moment j shows how many lines we were able to add
                                 {
-                                    previous.erase(previous.begin(), previous.begin() + prev_size - j);
+                                    previous.erase(previous.begin(), previous.begin() + prev_size - t);
                                 }
 
                                 //AT THIS POINT I HAVE A FRAGMENT OF SIZE 2*FragmentSize + 1 or less THAT CONTAINS WEAKNESS
@@ -357,7 +366,7 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                     int Found_Equal = 0;
                                     while( ix < Need_to_Compare.size() && Found_Equal != 1 )
                                     {
-                                        Found_Equal = Exemplars_Are_Equal( (*Clusters)[ Need_to_Compare[ix] ].commits[0].files[0].exemplars[0], Exmplr, path_to_fake_libc );
+                                        Found_Equal = Exemplars_Are_Equal( (*Clusters)[ Need_to_Compare[ix] ].commits[0].files[0].exemplars[0], Exmplr, path_to_fake_libc, showflag, logfile );
                                         //cout << Found_Equal << endl;
                                         if(Found_Equal != 1) ++ix;//so that at the end we will have either ix = clusters.size() => no equal exemplars were found
                                         //or ix value will be index of cluster, that contains equal exemplar
@@ -367,14 +376,17 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                         ix = Need_to_Compare[ix];
                                     //now ix contains not index of element of Need_to_Compare that contains index of needed cluster, but index of needed cluster
 
-                                    if(Found_Equal == 1)//we have found equal exemplar
+                                    if(Found_Equal == 1 && ix < (*Clusters).size() )//we have found equal exemplar
                                     {
                                         int Commit_Exists = 0;//checking if clusters->[ix] contains commit with SHA1 = (*Commit_Levels)[i].SHA1_of_commits[j]
                                         int index_of_last_commit = (*Clusters)[ix].commits.size();//contains index of last commit in (*Clusters)[ix]
                                         if(index_of_last_commit > 0)
                                             index_of_last_commit--;
 
-                                        if( (*Clusters)[ix].commits[ index_of_last_commit ].SHA1.compare( (*Commit_Levels)[i].SHA1_of_commits[j] ) == 0 )
+                                        //cout << ix << " " << (*Clusters).size() << " " << index_of_last_commit << " " << (*Clusters)[ix].commits.size() << " ";
+                                        //cout << i << " " << (*Commit_Levels).size() << " " << j << " " << (*Commit_Levels)[i].SHA1_of_commits.size() << endl;
+                                        if( (size_t)index_of_last_commit < (*Clusters)[ix].commits.size()
+                                        && (*Clusters)[ix].commits[ index_of_last_commit ].SHA1.compare( (*Commit_Levels)[i].SHA1_of_commits[j] ) == 0 )
                                             Commit_Exists = 1;
 
                                         if(Commit_Exists == 0)//we have to add commit with SHA1 = (*Commit_Levels)[i].SHA1_of_commits[j]
@@ -439,7 +451,8 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                             //incomplete line can be found for example when defining a function in some of C coding styles
                             if(last[last.size() - 1] != ';' && last[last.size() - 1] != '}' && in_file.eof())//if file ends with incomplete line it's an error
                             {
-                                cout << "Unexpected end of file " << Paths[i] << endl;
+                                if(showflag == 1)
+                                    logfile << "Unexpected end of file " << Paths[i] << endl;
                                 return 1;
                             }
                         }

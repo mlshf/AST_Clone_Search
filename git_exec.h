@@ -9,19 +9,22 @@
 #include <strings.h>
 #include <vector>
 #include <stddef.h>
+#include <fstream>
 
 using namespace std;
 
-int exec_git_command(string S)//It just executes command and prints the result
+int exec_git_command(string S, char showflag, ofstream& logfile)//It just executes command and prints the result
 {
     FILE* in;
     //char buff[512];
 
-    cout << S << endl << endl;
+    if( showflag == 1 )
+        logfile << S << endl << endl;
 
     if(!(in = popen(S.c_str(), "r")))
     {
-        cout << "COMMAND COULD NOT BE EXECUTED. ABORTING..." << endl;
+        if( showflag == 1)
+            logfile << "COMMAND COULD NOT BE EXECUTED. ABORTING..." << endl;
         return 1;
     }
 
@@ -31,10 +34,12 @@ int exec_git_command(string S)//It just executes command and prints the result
 
     while ((read = getline(&line, &len, in)) != -1)
     {
-        cout << line;
+        if( showflag == 1)
+            logfile << line;
     }
 
-    cout << endl;
+    if( showflag == 1 )
+        logfile << endl;
 
     pclose(in);
     if (line)
@@ -43,16 +48,18 @@ int exec_git_command(string S)//It just executes command and prints the result
     return 0;
 }
 
-int exec_command(string command, vector<string>* result)
+int exec_command(string command, vector<string>* result, char showflag, ofstream& logfile)
 {
     FILE* in;
     //char buff[512];
 
-    cout << command << endl << endl;
+    if(showflag == 1)
+        logfile << command << endl << endl;
 
     if(!(in = popen(command.c_str(), "r")))
     {
-        cout << "COMMAND COULD NOT BE EXECUTED. ABORTING..." << endl;
+        if(showflag == 1)
+            logfile << "COMMAND COULD NOT BE EXECUTED. ABORTING..." << endl;
         return 1;
     }
 
@@ -66,7 +73,8 @@ int exec_command(string command, vector<string>* result)
         result->push_back(str_line);
     }
 
-    cout << endl;
+    if(showflag == 1)
+        logfile << endl;
 
     pclose(in);
     if (line)
@@ -87,7 +95,7 @@ int Is_Char_String_Not_Empty(char S_temp[])//1 - does contain non-space characte
     return String_Not_Empty;
 }
 
-int exec_git_getsha1(string S, vector<string>* VS)//It executes command and reads the result. Then prints it.
+int exec_git_getsha1(string S, vector<string>* VS, char showflag, ofstream& logfile)//It executes command and reads the result. Then prints it.
 //Accepts string S - SHA1 of the commit, whose descendant commits we look for
 //VS contains the list of descendant commits of commit with SHA1 ~ S
 {
@@ -105,11 +113,14 @@ int exec_git_getsha1(string S, vector<string>* VS)//It executes command and read
     S_exec += ".*";
     S_exec += '"';
     S_exec += " | awk '{print $1}'";
-    cout << S_exec << endl << endl;
+
+    if(showflag == 1)
+        logfile << S_exec << endl << endl;
 
     if(!(in = popen(S_exec.c_str(), "r")))
     {
-        cout << "COMMAND COULD NOT BE EXECUTED. ABORTING..." << endl;
+        if(showflag == 1)
+            logfile << "COMMAND COULD NOT BE EXECUTED. ABORTING..." << endl;
         return 1;
     }
 
@@ -122,12 +133,14 @@ int exec_git_getsha1(string S, vector<string>* VS)//It executes command and read
         string S_temp(line);
         if(S_temp.size() > 40)
             S_temp.erase(40);
-        cout << S_temp << endl;
+        if(showflag == 1)
+            logfile << S_temp << endl;
         VS->push_back(S_temp);
 
     }
 
-    cout << endl;
+    if(showflag == 1)
+        logfile<< endl;
     if (line)
         free(line);
 

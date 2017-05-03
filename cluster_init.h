@@ -63,19 +63,23 @@ int string_found_C_extension(std::string path)
     return Found;
 }
 
-int list_dir_contents(std::vector<std::string>* Paths)
+int list_dir_contents(std::vector<std::string>* Paths, char showflag, ofstream& logfile)
 {
-    std::cout << "LISTING FILES WITH ACCEPTABLE EXTENSIONS : " << std::endl;
+    if(showflag == 1)
+        logfile << "LISTING FILES WITH ACCEPTABLE EXTENSIONS : " << std::endl;
     for (directory_entry it : recursive_directory_range("."))
     {
         std::string path = it.path().string();
         if(path.find(".git") == std::string::npos && (string_found_C_extension(path)))
         {
-            std::cout << path << std::endl;
+            if(showflag == 1)
+                logfile << path << std::endl;
             Paths->push_back(path);
         }
     }
-    std::cout << std::endl;
+
+    if(showflag == 1)
+        logfile << std::endl;
   /*std::copy(
   boost::filesystem::recursive_directory_iterator("./"),
   boost::filesystem::recursive_directory_iterator(),
@@ -210,15 +214,16 @@ int find_locations(vector<size_t>* locations, string source, string str_to_find,
     return 0;
 }
 
-int gen_id(vector<string> Text, vector<string>* Text_out, vector<vector<string>>* IDs, vector<vector<size_t>>* ID_locations)
+int gen_id(vector<string> Text, vector<string>* Text_out, vector<vector<string>>* IDs, vector<vector<size_t>>* ID_locations, char showflag, ofstream& logfile)
 {
     for(size_t i = 0; i < Text.size(); ++i)
     {
         string temp_str_out;
         vector<string> i_a_o;
-        if( Parametrization(Text[i], &temp_str_out, &i_a_o) == 1 )
+        if( Parametrization(Text[i], &temp_str_out, &i_a_o, showflag, logfile ) == 1 )
         {
-            cout << "Was unable to parametrize " << Text[i] << endl;
+            if(showflag == 1)
+                logfile << "Was unable to parametrize " << Text[i] << endl;
             return 1;
         }
         Text_out->push_back(temp_str_out);
@@ -266,33 +271,6 @@ int braces_balance(vector<string>* v_Str)
         string line = (*v_Str)[i];
 
         size_t j = line.size() - 1;
-
-        /*if(line[line.size() - 1] == '}')
-        {
-            if (l_brace_counter == 0)
-            {
-                ++r_brace_beg_counter;
-            }
-            else
-            {
-                ++r_brace_counter;
-            }
-
-        }
-        else
-        {
-            if(line.size() >= 2 && line[line.size() - 1] == ';' && line[line.size() - 2] == '}')
-            {
-                if (l_brace_counter == 0)
-                {
-                    ++r_brace_beg_counter;
-                }
-                else
-                {
-                    ++r_brace_counter;
-                }
-            }
-        }*/
 
         char endflag = 0;
         while(j >= 0 && endflag != 1)
@@ -396,7 +374,7 @@ int write_to_file(string filename, vector<string> text)
 }
 
 //this function is needed because when initializing compared can be a part of original
-int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fake_libc)// returns 1 if clones, 0 if not
+int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fake_libc, char showflag, ofstream& logfile)// returns 1 if clones, 0 if not
 {
     int offset  = ((int)Original.fragment.size() - (int)Compared.fragment.size()) / 2;
     Exemplar small = Compared, big = Original;
@@ -428,18 +406,20 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
     std::vector<std::string> Text_out_1;
     std::vector<std::vector<std::string>> ID_1;
     std::vector<std::vector<size_t>> ID_locs_1;//ID_locations
-    if(gen_id(first, &Text_out_1, &ID_1, &ID_locs_1) == 1)
+    if(gen_id(first, &Text_out_1, &ID_1, &ID_locs_1, showflag, logfile) == 1)
     {
-        cout << "Gen ID failed." << endl;
+        if(showflag == 1)
+            logfile << "Gen ID failed." << endl;
         return 1;
     }
 
     std::vector<std::string> Text_out_2;
     std::vector<std::vector<std::string>> ID_2;
     std::vector<std::vector<size_t>> ID_locs_2;//ID_locations
-    if(gen_id(second, &Text_out_2, &ID_2, &ID_locs_2) == 1)
+    if(gen_id(second, &Text_out_2, &ID_2, &ID_locs_2, showflag, logfile) == 1)
     {
-        cout << "Gen ID failed." << endl;
+        if(showflag == 1)
+            logfile << "Gen ID failed." << endl;
         return 1;
     }
 
@@ -449,7 +429,8 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
     //were unable to genereate typedefs
     if( ( typedefs1.size() > 0 && typedefs1[0] == "FAIL" ) || ( typedefs2.size() > 0 && typedefs2[0] == "FAIL" ) )
     {
-        cout << "Could not create additional pseudo-typedefs." << endl;
+        if(showflag == 1)
+            logfile << "Could not create additional pseudo-typedefs." << endl;
         return 0;
     }
 
@@ -504,8 +485,8 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
 
     //cout << "equality?" << endl;
 
-    exec_git_command("gcc -E -I" + path_to_fake_libc + "fake_libc_include CPR4_GCC_PP_C99_AST_1.c -o out_CPR4_GCC_PP_C99_AST_1.c");
-    exec_git_command("gcc -E -I" + path_to_fake_libc + "fake_libc_include CPR4_GCC_PP_C99_AST_2.c -o out_CPR4_GCC_PP_C99_AST_2.c");
+    exec_git_command("gcc -E -I" + path_to_fake_libc + "fake_libc_include CPR4_GCC_PP_C99_AST_1.c -o out_CPR4_GCC_PP_C99_AST_1.c", showflag, logfile);
+    exec_git_command("gcc -E -I" + path_to_fake_libc + "fake_libc_include CPR4_GCC_PP_C99_AST_2.c -o out_CPR4_GCC_PP_C99_AST_2.c", showflag, logfile);
 
     filename = "CPR4_GCC_PP_C99_AST_1.c";
     remove( filename.c_str() );
@@ -513,7 +494,7 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
     remove( filename.c_str() );
 
     vector<string> result;
-    exec_command("python3 " + path_to_fake_libc + "testing_file.py out_CPR4_GCC_PP_C99_AST_1.c out_CPR4_GCC_PP_C99_AST_2.c", &result);
+    exec_command("python3 " + path_to_fake_libc + "testing_file.py out_CPR4_GCC_PP_C99_AST_1.c out_CPR4_GCC_PP_C99_AST_2.c", &result, showflag, logfile);
 
     filename = "out_CPR4_GCC_PP_C99_AST_1.c";
     remove( filename.c_str() );
@@ -525,7 +506,8 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
         result.erase( result.begin() + 1, result.end() );
     }
 
-    cout << result[0] << endl;
+    if(showflag == 1)
+        logfile << result[0] << endl;
 
     if( result.size() < 1 || result[0].size() < 1 || result[0][0] != '1')
         return 0;
@@ -534,15 +516,16 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
 }
 
 //this function will find locations of defects in file PATH and store them in RESULT
-int find_defects(string* path, vector<long long>* result)
+int find_defects(string* path, vector<long long>* result, char showflag, ofstream& logfile)
 {
     //for file described by PATH cppcheck is launched, it's result stored in CPR_cppcheck_output.txt
-    exec_git_command("cppcheck --std=c99 " + *path + " 2> CPR4_C99_cppcheck_output.txt");
+    exec_git_command("cppcheck --std=c99 " + *path + " 2> CPR4_C99_cppcheck_output.txt", showflag, logfile);
 
     ifstream cppcheck_out("CPR4_C99_cppcheck_output.txt", ios_base::in);//processing cppcheck result
     if(!cppcheck_out.is_open())
     {
-        std::cout << "FILE : CPR4_C99_cppcheck_output.txt COULD NOT BE OPENED. ABORTING..." << std::endl;
+        if(showflag == 1)
+            logfile << "FILE : CPR4_C99_cppcheck_output.txt COULD NOT BE OPENED. ABORTING..." << std::endl;
         return 1;
     }
 
@@ -570,7 +553,7 @@ int find_defects(string* path, vector<long long>* result)
 };
 
 //for each file in version we find fragment located at position where CppCheck found and either creates new cluster or add to existing
-int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string SHA1, size_t FragmentSize, string path_to_fake_libc)
+int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string SHA1, size_t FragmentSize, string path_to_fake_libc, char showflag, ofstream& logfile)
 {
     for(size_t i = 0; i < Paths->size(); ++i)
     {/*
@@ -580,19 +563,23 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
         ifstream in_file((*Paths)[i].c_str(), ios_base::in);
         if(!in_file.is_open())
         {
-            std::cout << "FILE : " << (*Paths)[i] << " COULD NOT BE OPENED. ABORTING..." << std::endl;
+            if(showflag == 1)
+                logfile << "FILE : " << (*Paths)[i] << " COULD NOT BE OPENED. ABORTING..." << std::endl;
             return 1;
         }
 
         //create vector of defect locations and fill it
         vector<long long> defect_lines;
-        find_defects(&((*Paths)[i]), &defect_lines);
+        find_defects(&((*Paths)[i]), &defect_lines, showflag, logfile);
 
         //for each processed file we list defects found by CppCheck
-        cout << "Defect lines in " << (*Paths)[i] << " : " << endl;
-        for(size_t iii = 0; iii < defect_lines.size();++iii)
-            cout << defect_lines[iii] << endl;
-        cout << endl;
+        if(showflag == 1)
+        {
+            logfile << "Defect lines in " << (*Paths)[i] << " : " << endl;
+            for(size_t iii = 0; iii < defect_lines.size();++iii)
+                logfile << defect_lines[iii] << endl;
+            logfile << endl;
+        }
 
         std::vector<std::string> previous;//contains strings before commentary in number of FragmentSize
         //and if needed commentary is found then contains previous.size() + more
@@ -656,10 +643,13 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                 std::string outstr;
                 std::vector<string> temp_unused;
 
-                if(Parametrization(S_temp, &outstr, &temp_unused) == 1)//if we encountered a function declaration then
+                if(Parametrization(S_temp, &outstr, &temp_unused, showflag, logfile) == 1)//if we encountered a function declaration then
                 {//we'll check if we encountered a function declaration and skip it if so
-                    cout << "String number " << line << " contains NOT C lexeme." << endl;
-                    cout << S_temp << endl << outstr << endl;
+                    if( showflag == 1)
+                    {
+                        logfile << "String number " << line << " contains NOT C lexeme." << endl;
+                        logfile << S_temp << endl << outstr << endl;
+                    }
                     return 1;
                 }
 
@@ -745,10 +735,13 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                     std::string outstr2;
                                     std::vector<string> temp2_unused;
 
-                                    if(Parametrization(S_temp2, &outstr2, &temp2_unused) == 1)//if we encountered a function declaration then
+                                    if(Parametrization(S_temp2, &outstr2, &temp2_unused, showflag, logfile) == 1)//if we encountered a function declaration then
                                     {
-                                        cout << "String number " << line << " contains NOT C lexeme." << endl;
-                                        cout << S_temp << endl << outstr2 << endl;
+                                        if(showflag == 1)
+                                        {
+                                            logfile << "String number " << line << " contains NOT C lexeme." << endl;
+                                            logfile << S_temp << endl << outstr2 << endl;
+                                        }
                                         return 1;
                                     }
 
@@ -780,7 +773,8 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                         //incomplete line can be found for example when defining a function in some of C coding styles
                                         if(last[last.size() - 1] != ';' && last[last.size() - 1] != '}' && in_file.eof())//if file ends with incomplete line it's an error
                                         {
-                                            cout << "Unexpected end of file " << (*Paths)[i] << endl;
+                                            if(showflag == 1)
+                                                logfile << "Unexpected end of file " << (*Paths)[i] << endl;
                                             return 1;
                                         }
                                     }
@@ -822,7 +816,7 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                 int Found_Equal = 0;
                                 while( ix < clusters->size() && Found_Equal != 1 )
                                 {
-                                    Found_Equal = Exemplars_Are_Equal( (*clusters)[ix].commits[0].files[0].exemplars[0], Exmplr, path_to_fake_libc );
+                                    Found_Equal = Exemplars_Are_Equal( (*clusters)[ix].commits[0].files[0].exemplars[0], Exmplr, path_to_fake_libc, showflag, logfile );
                                     if(Found_Equal != 1) ++ix;//so that at the end we will have either ix = clusters.size() => no equal exemplars were found
                                     //or ix value will be index of cluster, that contains equal exemplar
                                 }
@@ -924,7 +918,8 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                     //incomplete line can be found for example when defining a function in some of C coding styles
                     if(last[last.size() - 1] != ';' && last[last.size() - 1] != '}' && in_file.eof())//if file ends with incomplete line it's an error
                     {
-                        cout << "Unexpected end of file " << (*Paths)[i] << endl;
+                        if(showflag == 1)
+                            logfile << "Unexpected end of file " << (*Paths)[i] << endl;
                         return 1;
                     }
                 }

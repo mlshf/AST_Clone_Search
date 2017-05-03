@@ -1,6 +1,7 @@
 # depslib dependency file v1.0
-1493669213 source:/home/nikita/Course_Realization/main.cpp
+1493840468 source:/home/nikita/Course_Realization/main.cpp
 	<iostream>
+	<fstream>
 	<sstream>
 	<stdio.h>
 	<stdlib.h>
@@ -15,7 +16,7 @@
 	<cctype>
 	"output.h"
 
-1493474711 /home/nikita/Course_Realization/git_exec.h
+1493838866 /home/nikita/Course_Realization/git_exec.h
 	<iostream>
 	<stdio.h>
 	<stdlib.h>
@@ -24,8 +25,9 @@
 	<strings.h>
 	<vector>
 	<stddef.h>
+	<fstream>
 
-1493474711 source:/home/nikita/Course_Realization/git_exec.h
+1493838866 source:/home/nikita/Course_Realization/git_exec.h
 	<iostream>
 	<stdio.h>
 	<stdlib.h>
@@ -34,8 +36,9 @@
 	<strings.h>
 	<vector>
 	<stddef.h>
+	<fstream>
 
-1493669415 source:/home/nikita/Course_Realization/cluster_init.h
+1493839500 source:/home/nikita/Course_Realization/cluster_init.h
 	"cluster.h"
 	<boost/filesystem.hpp>
 	<iostream>
@@ -51,7 +54,7 @@
 	"git_exec.h"
 	"lexical.h"
 
-1493669415 /home/nikita/Course_Realization/cluster_init.h
+1493839500 /home/nikita/Course_Realization/cluster_init.h
 	"cluster.h"
 	<boost/filesystem.hpp>
 	<iostream>
@@ -85,7 +88,7 @@
 	<strings.h>
 	<vector>
 
-1493669476 source:/home/nikita/Course_Realization/history_analysis.h
+1493840125 source:/home/nikita/Course_Realization/history_analysis.h
 	"cluster.h"
 	"cluster_init.h"
 	"git_exec.h"
@@ -102,7 +105,7 @@
 	<cmath>
 	"lexical.h"
 
-1493669476 /home/nikita/Course_Realization/history_analysis.h
+1493840125 /home/nikita/Course_Realization/history_analysis.h
 	"cluster.h"
 	"cluster_init.h"
 	"git_exec.h"
@@ -230,7 +233,7 @@
 	<cctype>
 	<cmath>
 
-1493670190 /home/nikita/Course_Realization/output.h
+1493839728 /home/nikita/Course_Realization/output.h
 	<iostream>
 	<sstream>
 	<stdio.h>
@@ -245,7 +248,7 @@
 	"history_analysis.h"
 	<cctype>
 
-1493569902 /home/nikita/Course_Realization/lexical.h
+1493838480 /home/nikita/Course_Realization/lexical.h
 	<stdio.h>
 	<ctype.h>
 	<string.h>

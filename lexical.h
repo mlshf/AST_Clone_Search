@@ -73,7 +73,7 @@ int What_Keyword(string str, string* output, vector<string>* id_and_num)//functi
 }
 
 //this function parameterizes given in_str and stores it into output, id_and_num is used in What_Keyword function
-int Parametrization(string in_str, string* output, vector<string>* id_and_num)
+int Parametrization(string in_str, string* output, vector<string>* id_and_num, char showflag, ofstream& logfile)
 {
     char ch;
     string  separators = " \t\n\v\f\r,;(){}[]#\"'" , operators = "!%^&*-+=~|.<>/?:";//vector serparators contains all symbols that can separate tokens from each other
@@ -96,7 +96,8 @@ int Parametrization(string in_str, string* output, vector<string>* id_and_num)
                 {
                     if(What_Keyword(str_temp, output, id_and_num) == 1)
                     {
-                        cout << str_temp << " is not a C lexeme..." << endl;
+                        if(showflag == 1)
+                            logfile << str_temp << " is not a C lexeme..." << endl;
                         return 1;
                     }
                     str_temp.clear();
@@ -226,7 +227,8 @@ int Parametrization(string in_str, string* output, vector<string>* id_and_num)
                                     {
                                         if(What_Keyword(str_temp, output, id_and_num) == 1)
                                         {
-                                            cout << str_temp << " is not a C lexeme..." << endl;
+                                            if(showflag == 1)
+                                                logfile << str_temp << " is not a C lexeme..." << endl;
                                             return 1;
                                         }
                                     }
@@ -245,7 +247,8 @@ int Parametrization(string in_str, string* output, vector<string>* id_and_num)
                                             {
                                                 if(What_Keyword(str_temp, output, id_and_num) == 1)
                                                 {
-                                                    cout << str_temp << " is not a C lexeme..." << endl;
+                                                    if(showflag == 1)
+                                                        logfile << str_temp << " is not a C lexeme..." << endl;
                                                     return 1;
                                                 }
                                                 str_temp.clear();
@@ -292,7 +295,8 @@ int Parametrization(string in_str, string* output, vector<string>* id_and_num)
         {
             if(What_Keyword(str_temp, output, id_and_num) == 1)
             {
-                cout << str_temp << " is not a C lexeme..." << endl;
+                if(showflag == 1)
+                    logfile << str_temp << " is not a C lexeme..." << endl;
                 return 1;
             }
             str_temp.clear();

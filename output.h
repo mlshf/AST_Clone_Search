@@ -15,7 +15,7 @@
 #include "history_analysis.h"
 #include <cctype>
 
-int Output_Of_Result(vector<Cluster>* Clusters, string BaseName)
+int Output_Of_Result(vector<Cluster>* Clusters, string BaseName, char showflag, ofstream& logfile)
 {
     for(size_t i = 0; i < Clusters->size(); ++i)
     {
@@ -26,7 +26,8 @@ int Output_Of_Result(vector<Cluster>* Clusters, string BaseName)
         ofstream output_file(Name.c_str(), ios_base::trunc);
         if(!output_file.is_open())
         {
-            cout << "Could not create/open file " << Name << endl;
+            if(showflag == 1)
+                logfile << "Could not create/open file " << Name << endl;
             return 1;
         }
 
@@ -163,7 +164,7 @@ int Output_Of_Result(vector<Cluster>* Clusters, string BaseName)
         converter << i + 1;
 
         Command += BaseName + "_" + converter.str() + ".gv -o " + BaseName + "_" + converter.str() + ".png";
-        if(exec_git_command(Command) == 1)
+        if(exec_git_command(Command, showflag, logfile) == 1)
             return 1;
 
     }
