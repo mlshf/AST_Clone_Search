@@ -151,7 +151,7 @@ int main_module(int argc, char* argv[], char showflag, ofstream& logfile)
     }
 
 
-    cout << endl << "#INITIALIZING CLUSTERS..." << endl;
+    cout << endl << "#INITIALIZING CLUSTERS..." << endl << endl;
     //vector of Clusters of clones of code is created
     vector<Cluster> Clusters;
     //and initializaed
@@ -175,7 +175,7 @@ int main_module(int argc, char* argv[], char showflag, ofstream& logfile)
         Vector_of_Paths.clear();//we no longer need the resources
     }
 
-    cout << endl << "#LOOKING FOR CLONES..." << endl;
+    cout << endl << "#LOOKING FOR CLONES..." << endl << endl;
     //this time we have vector of Clusters and we add new elements if needed
     if(Analyze_History(&Commit_Levels, &Clusters, FragmentSize, path_to_exe, showflag, logfile) == 1)
     {
@@ -183,7 +183,7 @@ int main_module(int argc, char* argv[], char showflag, ofstream& logfile)
         return 1;
     }
 
-    cout << endl << "#OUTPUT OF RESULT..." << endl;
+    cout << endl << "#OUTPUT OF RESULT..." << endl << endl;
     //producing output
     string BaseName(argv[3]);
     exec_git_command("git checkout master", showflag, logfile);
@@ -249,7 +249,7 @@ int main_module(int argc, char* argv[], char showflag, ofstream& logfile)
         return 1;
     }
 
-    cout << endl << "#PROCESS IS OVER." << endl;
+    cout << endl << "#PROCESS IS OVER." << endl << endl;
 
     return 0;
 }

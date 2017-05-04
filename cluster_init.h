@@ -385,13 +385,6 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
         big = Compared;
     }
 
-    /*cout << small.fragment.size() << " " << big.fragment.size() << endl;
-    size_t qwe = 0;
-    while(qwe < small.fragment.size())
-        {cout << small.fragment[qwe] << "         " << big.fragment[qwe] << endl; ++qwe;}
-    while(qwe < big.fragment.size())
-        {cout << "                     " << big.fragment[qwe] << endl; ++qwe;}*/
-
     //making fragments have same size
     offset = abs(offset);
     size_t i = 0;
@@ -467,12 +460,6 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
     second.insert(second.begin(), "#include <stdlib.h>");
     second.insert(second.begin(), "#include <stdio.h>");
 
-    /*if(Perform_Comparison(&first, &second) == 1)//returns 1 if not clones, 0 if clones
-        are_equal = 0;//so return value is 0 if not clones
-*/
-
-    //cout << "equality?" << endl;
-
     string filename = "CPR4_GCC_PP_C99_AST_1.c";
 
     write_to_file(filename, first);
@@ -506,7 +493,7 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
         result.erase( result.begin() + 1, result.end() );
     }
 
-    if(showflag == 1)
+    if(showflag == 1 && result.size() > 0 )
         logfile << result[0] << endl;
 
     if( result.size() < 1 || result[0].size() < 1 || result[0][0] != '1')
