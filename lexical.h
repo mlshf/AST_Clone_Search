@@ -103,6 +103,10 @@ int Parametrization(string in_str, string* output, vector<string>* id_and_num, c
                     str_temp.clear();
                 }
             }
+
+            if( ch == '/' && i < in_str.size() && in_str[i] == '/' )
+                break;
+
             //cout << ch << " is an operator" << endl;
 
             string temp(1, ch);
@@ -120,7 +124,7 @@ int Parametrization(string in_str, string* output, vector<string>* id_and_num, c
                 if(ch == '#')//special case - include, define, ifndef and etc.
                 {
                     str_temp += ch;
-                    while(ch != '>' && ch != '"' && in_str[i] != '\n')
+                    while(i < in_str.size() && ch != '>' && ch != '"' && in_str[i] != '\n')
                     {
                         ch = in_str[i];
                         str_temp += ch;
@@ -131,7 +135,7 @@ int Parametrization(string in_str, string* output, vector<string>* id_and_num, c
                         ch = in_str[i];
                         str_temp += ch;
                         i++;
-                        while(ch != '"')
+                        while(i < in_str.size() && ch != '"')
                         {
                             ch = in_str[i];
                             str_temp += ch;
@@ -153,12 +157,18 @@ int Parametrization(string in_str, string* output, vector<string>* id_and_num, c
                     {
                         str_temp += ch;
                         do
-                        {
-                            ch = in_str[i];
-                            i++;
-                            str_temp += ch;
+                            {if(i < in_str.size())
+                            {
 
-                        }while(ch != '"');
+                                ch = in_str[i];
+                                i++;
+                                str_temp += ch;
+                            }
+                            else
+                                i = in_str.size() + 1;
+
+
+                        }while(i <= in_str.size() && ch != '"');
 
                         //cout << str_temp << " is a constant string" << endl;
 
@@ -173,11 +183,16 @@ int Parametrization(string in_str, string* output, vector<string>* id_and_num, c
                             str_temp += ch;
                             do
                             {
-                                ch = in_str[i];
-                                i++;
-                                str_temp += ch;
+                                if(i < in_str.size())
+                                {
+                                    ch = in_str[i];
+                                    i++;
+                                    str_temp += ch;
+                                }
+                                else
+                                    i = in_str.size() + 1;
 
-                            }while(ch != '\'');
+                            }while(i <= in_str.size() && ch != '\'');
 
                             //cout << str_temp << " is a character" << endl;
 
@@ -190,7 +205,7 @@ int Parametrization(string in_str, string* output, vector<string>* id_and_num, c
 
                             if(str_temp.size() != 0)
                             {
-                                while(isspace(ch))//ignoring space symbols
+                                while(i < in_str.size() && isspace(ch))//ignoring space symbols
                                 {
                                     ch = in_str[i];
                                     ++i;

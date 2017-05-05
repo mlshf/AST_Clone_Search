@@ -37,7 +37,7 @@ int string_found_C_extension(std::string path)
     //Found = Found || (path.find(".h++", path.size() - 4) != std::string::npos);
    // Found = Found || (path.find(".hxx", path.size() - 4) != std::string::npos);
 
-    //Found = Found || (path.find(".h", path.size() - 2) != std::string::npos);
+    Found = Found || (path.find(".h", path.size() - 2) != std::string::npos);
     //Found = Found || (path.find(".C", path.size() - 2) != std::string::npos);
     //Found = Found || (path.find(".cc", path.size() - 3) != std::string::npos);
     //Found = Found || (path.find(".cpp", path.size() - 4) != std::string::npos);
@@ -224,7 +224,7 @@ int gen_id(vector<string> Text, vector<string>* Text_out, vector<vector<string>>
         {
             if(showflag == 1)
                 logfile << "Was unable to parametrize " << Text[i] << endl;
-            return 1;
+            continue;
         }
         Text_out->push_back(temp_str_out);
         IDs->push_back(i_a_o);
@@ -250,10 +250,10 @@ vector<string> gen_typedefs(vector<vector<size_t>> ID_locations, vector<vector<s
     for(size_t i = 0; i < ID_locations.size(); ++i)
     {
         vector<size_t> line_id_locks = ID_locations[i];
-        for(size_t j = 0; j < line_id_locks.size(); ++j)
+        for(size_t j = 1; j < line_id_locks.size(); ++j)
         {
             if(line_id_locks[j] == line_id_locks[j - 1] + 2)
-                if( typedefs.end() == find( typedefs.begin(), typedefs.end(), (IDs[i])[j - 1] ) )
+                if( (IDs[i]).size() > 0 && j > 0 && typedefs.end() == find( typedefs.begin(), typedefs.end(), (IDs[i])[j - 1] ) )
                     typedefs.push_back((IDs[i])[j - 1]);
         }
     }
@@ -376,23 +376,20 @@ int write_to_file(string filename, vector<string> text)
 //this function is needed because when initializing compared can be a part of original
 int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fake_libc, char showflag, ofstream& logfile)// returns 1 if clones, 0 if not
 {
-    int offset  = ((int)Original.fragment.size() - (int)Compared.fragment.size()) / 2;
-    Exemplar small = Compared, big = Original;
+    if( Original.fragment.size() != Compared.fragment.size() )
+        return 0;
 
-    if(offset < 0)//if original is included in compared
-    {
-        small = Original;
-        big = Compared;
-    }
+    /*int offset  = ((int)Compared.fragment.size() - (int)Original.fragment.size()) / 2;
 
-    //making fragments have same size
-    offset = abs(offset);
+    if(offset < 0)
+        return 0;*/
+
     size_t i = 0;
     std::vector<string> first, second;
-    for(; i < small.fragment.size(); ++i)
+    for(; i < Original.fragment.size()/* && offset + i < Compared.fragment.size() */; ++i)
     {
-        first.push_back( small.fragment[i] );
-        second.push_back( big.fragment[offset + i] );
+        first.push_back( Original.fragment[i] );
+        second.push_back( Compared.fragment[/*offset + */i] );
     }
 
     //generating versions of first and second where identificators have been changed for ID in text_out_i, stored in ID_i and their locations stored in ID_locs_i
@@ -512,8 +509,7 @@ int find_defects(string* path, vector<long long>* result, char showflag, ofstrea
     if(!cppcheck_out.is_open())
     {
         if(showflag == 1)
-            logfile << "FILE : CPR4_C99_cppcheck_output.txt COULD NOT BE OPENED. ABORTING..." << std::endl;
-        return 1;
+            logfile << "FILE : CPR4_C99_cppcheck_output.txt COULD NOT BE OPENED. SKIPPING..." << std::endl;
     }
 
     //vector<string> CppCheck_result;
@@ -552,7 +548,7 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
         {
             if(showflag == 1)
                 logfile << "FILE : " << (*Paths)[i] << " COULD NOT BE OPENED. ABORTING..." << std::endl;
-            return 1;
+            continue;
         }
 
         //create vector of defect locations and fill it
@@ -637,7 +633,7 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                         logfile << "String number " << line << " contains NOT C lexeme." << endl;
                         logfile << S_temp << endl << outstr << endl;
                     }
-                    return 1;
+                    break;
                 }
 
                 //here we check if we encountered a function declaration - if so skip it
@@ -671,7 +667,8 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
 
                         previous.push_back(S_temp);
 
-                        while(j < prev_size && !in_file.eof())
+                        char unexpected_eof = 0;
+                        while(unexpected_eof != 1 && j < prev_size && !in_file.eof())
                         {
                             /*
                                 char str_t[256];
@@ -685,7 +682,7 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                 Delete_Extra_Spaces(&S_temp2);
 
                                 //if we did not encounter end of file, string is not empty and it is not a commentary
-                                if(!in_file.eof() && Is_String_Not_Empty(S_temp2) == 1 && S_temp2[0] != '/' && S_temp[0] != '#')
+                                if(!in_file.eof() && Is_String_Not_Empty(S_temp2) == 1 && S_temp2[0] != '/' && S_temp2[0] != '#')
                                 {
                                     //we check if last line in prev does not end with ; or { or } - meaning it's an incomplete line
                                     if(previous.size() > 0)
@@ -729,7 +726,7 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                             logfile << "String number " << line << " contains NOT C lexeme." << endl;
                                             logfile << S_temp << endl << outstr2 << endl;
                                         }
-                                        return 1;
+                                        break;
                                     }
 
                                     //here we check if we encountered a function declaration - if so skip it
@@ -762,7 +759,8 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                         {
                                             if(showflag == 1)
                                                 logfile << "Unexpected end of file " << (*Paths)[i] << endl;
-                                            return 1;
+                                            unexpected_eof = 1;
+                                            break;
                                         }
                                     }
                                 }
@@ -907,7 +905,7 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                     {
                         if(showflag == 1)
                             logfile << "Unexpected end of file " << (*Paths)[i] << endl;
-                        return 1;
+                        break;
                     }
                 }
             }

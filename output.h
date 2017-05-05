@@ -158,14 +158,16 @@ int Output_Of_Result(vector<Cluster>* Clusters, string BaseName, char showflag, 
 
         output_file << "}" << endl;
 
-        string Command = "dot -Tpng ";//example1.txt -o example1.png
+        output_file.close();
+
+        /*string Command = "dot -Tpng ";//example1.txt -o example1.png
         converter.clear();
         converter.str(string());
         converter << i + 1;
 
         Command += BaseName + "_" + converter.str() + ".gv -o " + BaseName + "_" + converter.str() + ".png";
         if(exec_git_command(Command, showflag, logfile) == 1)
-            return 1;
+            return 1;*/
 
     }
 

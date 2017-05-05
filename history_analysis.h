@@ -151,8 +151,8 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                 if(!in_file.is_open())
                 {
                     if(showflag == 1)
-                        logfile << "FILE : " << Paths[k] << " COULD NOT BE OPENED. ABORTING..." << std::endl;
-                    return 1;
+                        logfile << "FILE : " << Paths[k] << " COULD NOT BE OPENED. SKIPPING.." << std::endl;
+                    continue;
                 }
 
                 vector<string> previous;//contains strings before commentary in number of FragmentSize
@@ -218,7 +218,7 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                 logfile << "String number " << line << " contains NOT C lexeme." << endl;
                                 logfile << S_temp << endl << outstr << endl;
                             }
-                            return 1;
+                            break;
                         }
 
                         //here we check if we encountered a function declaration - if so skip it
@@ -256,7 +256,8 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                 //j counts number of lines that have been added to previous[]
                                 previous.push_back(S_temp);
 
-                                while(t < prev_size && !in_file.eof())
+                                char unexpected_eof = 0;
+                                while(unexpected_eof != 1 && t < prev_size && !in_file.eof())
                                 {
                                     std::string S_temp2;
                                     std::getline(in_file, S_temp2);
@@ -309,7 +310,7 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                                 logfile << "String number " << line << " contains NOT C lexeme." << endl;
                                                 logfile << S_temp << endl << outstr2 << endl;
                                             }
-                                            return 1;
+                                            break;
                                         }
 
                                         //here we check if we encountered a function declaration - if so skip it
@@ -341,12 +342,15 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                             if(last[last.size() - 1] != ';' && last[last.size() - 1] != '}' && in_file.eof())//if file ends with incomplete line it's an error
                                             {
                                                 if(showflag == 1)
-                                                    logfile << "Unexpected end of file " << Paths[i] << endl;
-                                                return 1;
+                                                    logfile << "Unexpected end of file " << Paths[k] << endl;
+                                                unexpected_eof = 1;
+                                                break;
                                             }
                                         }
                                     }
                                 }
+                                if(unexpected_eof == 1)
+                                    break;
 
                                 if(t < prev_size)//at this moment j shows how many lines we were able to add
                                 {
@@ -376,7 +380,7 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                         ix = Need_to_Compare[ix];
                                     //now ix contains not index of element of Need_to_Compare that contains index of needed cluster, but index of needed cluster
 
-                                    if(Found_Equal == 1 && ix < (*Clusters).size() )//we have found equal exemplar
+                                    if(Found_Equal == 1)//we have found equal exemplar
                                     {
                                         int Commit_Exists = 0;//checking if clusters->[ix] contains commit with SHA1 = (*Commit_Levels)[i].SHA1_of_commits[j]
                                         int index_of_last_commit = (*Clusters)[ix].commits.size();//contains index of last commit in (*Clusters)[ix]
@@ -452,8 +456,8 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                             if(last[last.size() - 1] != ';' && last[last.size() - 1] != '}' && in_file.eof())//if file ends with incomplete line it's an error
                             {
                                 if(showflag == 1)
-                                    logfile << "Unexpected end of file " << Paths[i] << endl;
-                                return 1;
+                                    logfile << "Unexpected end of file " << Paths[k] << endl;
+                                break;//return 1;
                             }
                         }
                     }
