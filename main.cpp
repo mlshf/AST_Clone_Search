@@ -176,6 +176,13 @@ int main_module(int argc, char* argv[], char showflag, ofstream& logfile)
     }
 
     cout << endl << "#LOOKING FOR CLONES..." << endl << endl;
+
+    if( Clusters.size() < 1 || Commit_Levels.size() < 1 )
+    {
+        if(showflag == 1)
+            logfile << "No fragments were found by CppCheck while initializing" << endl;
+        return 1;
+    }
     //this time we have vector of Clusters and we add new elements if needed
     if(Analyze_History(&Commit_Levels, &Clusters, FragmentSize, path_to_exe, showflag, logfile) == 1)
     {

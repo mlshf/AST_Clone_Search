@@ -76,8 +76,8 @@ rules2 = []
 astmscp.createAUT(ast1_root, ast2_root, r, num, rules1, rules2)
 
 distance = astmscp.distanceAUT(rules1, rules2)
-#if distance is <= 4/3 * sqrt( size1, size2 ) - average geometric by 4/3
-if distance * distance * 9 <= 16 * astmscp.AST_size( ast1_root ) * astmscp.AST_size( ast2_root ):
+#if distance is <= sqrt( size1, size2 ) - average geometric 
+if distance * distance <= astmscp.AST_size( ast1_root ) * astmscp.AST_size( ast2_root ):
 	print(1)
 else:
 	print(0)

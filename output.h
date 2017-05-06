@@ -17,6 +17,7 @@
 
 int Output_Of_Result(vector<Cluster>* Clusters, string BaseName, char showflag, ofstream& logfile)
 {
+    long long counter = 0;
     for(size_t i = 0; i < Clusters->size(); ++i)
     {
         stringstream converter;
@@ -80,6 +81,7 @@ int Output_Of_Result(vector<Cluster>* Clusters, string BaseName, char showflag, 
                         converter << (*Clusters)[i].commits[j].files[0].exemplars[0].fragment.size();
 
                         Commit_j += converter.str();
+
                     }
 
                     //cout << "OK !" << i << endl;
@@ -121,6 +123,8 @@ int Output_Of_Result(vector<Cluster>* Clusters, string BaseName, char showflag, 
                         converter << (*Clusters)[i].commits[j].files[k].exemplars[n].fragment.size();
 
                         File_k += converter.str();
+
+                        ++counter;
                     }
 
                     File_k += "}\"];";
@@ -170,6 +174,8 @@ int Output_Of_Result(vector<Cluster>* Clusters, string BaseName, char showflag, 
             return 1;*/
 
     }
+
+    cout << endl << counter << endl << endl;
 
     return 0;
 }
