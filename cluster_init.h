@@ -230,14 +230,14 @@ int gen_id(vector<string> Text, vector<string>* Text_out, vector<vector<string>>
         IDs->push_back(i_a_o);
 
         vector<size_t> locations_id_for_line;
-        find_locations(&locations_id_for_line, temp_str_out, "ID", 2);
+        find_locations(&locations_id_for_line, temp_str_out, "ID", 1);
         ID_locations->push_back(locations_id_for_line);
     }
 
     return 0;
 }
 
-vector<string> gen_typedefs(vector<vector<size_t>> ID_locations, vector<vector<string>> IDs)
+vector<string> gen_typedefs(vector<vector<size_t>> ID_locations, vector<vector<string>> IDs, vector<string>* Text_param)
 {
     vector<string> typedefs;
 
@@ -250,11 +250,42 @@ vector<string> gen_typedefs(vector<vector<size_t>> ID_locations, vector<vector<s
     for(size_t i = 0; i < ID_locations.size(); ++i)
     {
         vector<size_t> line_id_locks = ID_locations[i];
+
         for(size_t j = 1; j < line_id_locks.size(); ++j)
         {
             if(line_id_locks[j] == line_id_locks[j - 1] + 2)
+            {
                 if( (IDs[i]).size() > 0 && j > 0 && typedefs.end() == find( typedefs.begin(), typedefs.end(), (IDs[i])[j - 1] ) )
+                {
                     typedefs.push_back((IDs[i])[j - 1]);
+                }
+            }
+        }
+
+        string PFPF("CBP4_PARAMETERIZED_FUNCNAME_POSSIBLE_FUNCDEF");
+
+        for(size_t j = 0; j < line_id_locks.size(); ++j)
+        {
+
+            if( (int)line_id_locks[j] - 1 <= 0 )
+                continue;
+
+            string ID_LOC = (*Text_param)[i].substr( line_id_locks[j] - 1, 4 );
+
+            //if IDs[i] size > 0
+            //and if ID_LOC = (ID)
+            //and ( if there is PFPF before ID_LOC and it's further than PFPF size
+            //or if there is no PFPF before ID_LOC )
+            //and if there is no such type in typedef yet
+            if( (IDs[i]).size() > 0
+            && ID_LOC == "(ID)"
+            && ( ( (*Text_param)[i].rfind( PFPF, line_id_locks[j] - 2 ) != string::npos
+                && (long long)(*Text_param)[i].rfind( PFPF, line_id_locks[j] - 2 ) < (long long)(line_id_locks[j] - 1 - PFPF.size() ) )
+            || (*Text_param)[i].rfind( PFPF, line_id_locks[j] - 2 ) == string::npos )
+            && typedefs.end() == find( typedefs.begin(), typedefs.end(), (IDs[i])[j] ) )
+            {
+                typedefs.push_back((IDs[i])[j]);
+            }
         }
     }
 
@@ -376,20 +407,35 @@ int write_to_file(string filename, vector<string> text)
 //this function is needed because when initializing compared can be a part of original
 int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fake_libc, char showflag, ofstream& logfile)// returns 1 if clones, 0 if not
 {
-    if( Original.fragment.size() != Compared.fragment.size() )
+    //if original is bigger than compared than there's no comparison
+    //if original is smaller than compared but it's only one line - than there's no comparison
+    if( Original.fragment.size() > Compared.fragment.size() || ( Original.fragment.size() < Compared.fragment.size() && Original.fragment.size() == 1 ) )
         return 0;
 
-    /*int offset  = ((int)Compared.fragment.size() - (int)Original.fragment.size()) / 2;
+    int offset  = ((int)Compared.fragment.size() - (int)Original.fragment.size()) / 2;
 
     if(offset < 0)
-        return 0;*/
+        return 0;
 
     size_t i = 0;
     std::vector<string> first, second;
-    for(; i < Original.fragment.size()/* && offset + i < Compared.fragment.size() */; ++i)
+    for(; i < Original.fragment.size() && offset + i < Compared.fragment.size() ; ++i)
     {
         first.push_back( Original.fragment[i] );
-        second.push_back( Compared.fragment[/*offset + */i] );
+        second.push_back( Compared.fragment[offset + i] );
+    }
+
+    i = 0;
+    for(; i < first.size(); ++i)
+    {
+        if(first[i] != second[i])
+            break;
+    }
+    //char b = 0;
+    if(i > 0 && i == first.size())
+    {
+        return 1;
+        //b = 1;
     }
 
     //generating versions of first and second where identificators have been changed for ID in text_out_i, stored in ID_i and their locations stored in ID_locs_i
@@ -400,7 +446,8 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
     {
         if(showflag == 1)
             logfile << "Gen ID failed." << endl;
-        return 1;
+        //cout << "Gen ID failed with first!" << endl;
+        return 0;
     }
 
     std::vector<std::string> Text_out_2;
@@ -410,17 +457,25 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
     {
         if(showflag == 1)
             logfile << "Gen ID failed." << endl;
-        return 1;
+        //cout << "Gen ID failed with second!" << endl;
+        return 0;
     }
 
     //generating lists of IDs that have to be described in typedefs
-    std::vector<string> typedefs1 = gen_typedefs(ID_locs_1, ID_1), typedefs2 = gen_typedefs(ID_locs_2, ID_2);
+    std::vector<string> typedefs1 = gen_typedefs(ID_locs_1, ID_1, &Text_out_1), typedefs2 = gen_typedefs(ID_locs_2, ID_2, &Text_out_2);
+
+    /*if( b == 1)
+    {
+        for(size_t j = 0; j < first.size(); ++j)
+            cout << Text_out_1[j] << "_______________" << Text_out_2[j] << endl;
+    }*/
 
     //were unable to genereate typedefs
     if( ( typedefs1.size() > 0 && typedefs1[0] == "FAIL" ) || ( typedefs2.size() > 0 && typedefs2[0] == "FAIL" ) )
     {
         if(showflag == 1)
             logfile << "Could not create additional pseudo-typedefs." << endl;
+        //cout << "Gen typedefs failed!" << endl;
         return 0;
     }
 
@@ -441,23 +496,23 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
     //which is needed for fragment to be processed with PyCParser
     first.push_back("}");
     first.insert(first.begin(), "void ast1_func(){");
-    for(size_t i = 0; i < typedefs1.size(); ++i)
+    for(size_t j = 0; j < typedefs1.size(); ++j)
     {
-        first.insert(first.begin(), "typedef void* " + typedefs1[i] + ";");
+        first.insert(first.begin(), "typedef void* " + typedefs1[j] + ";");
     }
     first.insert(first.begin(), "#include <stdlib.h>");
     first.insert(first.begin(), "#include <stdio.h>");
 
     second.push_back("}");
     second.insert(second.begin(), "void ast2_func(){");
-    for(size_t i = 0; i < typedefs2.size(); ++i)
+    for(size_t j = 0; j < typedefs2.size(); ++j)
     {
-        second.insert(second.begin(), "typedef void* " + typedefs2[i] + ";");
+        second.insert(second.begin(), "typedef void* " + typedefs2[j] + ";");
     }
     second.insert(second.begin(), "#include <stdlib.h>");
     second.insert(second.begin(), "#include <stdio.h>");
 
-    string filename = "CPR4_GCC_PP_C99_AST_1.c";
+    /*string filename = "CPR4_GCC_PP_C99_AST_1.c";
 
     write_to_file(filename, first);
 
@@ -468,6 +523,9 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
     write_to_file(filename, second);
 
     //cout << "equality?" << endl;
+    //if( b == 1 || (i > 0 && i == first.size()) ){
+        //for(size_t j = 0; j < first.size(); ++j)
+           // cout << first[j] << "_______________" << second[j] << endl;}
 
     exec_git_command("gcc -E -I" + path_to_fake_libc + "fake_libc_include CPR4_GCC_PP_C99_AST_1.c -o out_CPR4_GCC_PP_C99_AST_1.c", showflag, logfile);
     exec_git_command("gcc -E -I" + path_to_fake_libc + "fake_libc_include CPR4_GCC_PP_C99_AST_2.c -o out_CPR4_GCC_PP_C99_AST_2.c", showflag, logfile);
@@ -485,6 +543,9 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
     filename = "out_CPR4_GCC_PP_C99_AST_2.c";
     remove( filename.c_str() );
 
+    //if(b == 1)
+        //cout << result.size() << endl << result[0] << endl;
+
     if(result.size() > 1)
     {
         result.erase( result.begin() + 1, result.end() );
@@ -494,7 +555,9 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
         logfile << result[0] << endl;
 
     if( result.size() < 1 || result[0].size() < 1 || result[0][0] != '1')
-        return 0;
+        return 0;*/
+
+    //cout << result[0] << endl;
 
     return 1;
 }
@@ -522,7 +585,14 @@ int find_defects(string* path, vector<long long>* result, char showflag, ofstrea
         if( S_temp.size() > 0 && S_temp.find(":") != string::npos && S_temp.find("]") != string::npos )//if line looks like this [file.c:line] ...
         {
             size_t i_beg = S_temp.find(":"), i_end = S_temp.find("]");//we leave only line number
+            string file = "./" + S_temp.substr(1, i_beg - 1);
             S_temp = S_temp.substr(i_beg + 1, i_end - i_beg - 1);
+
+            //cout << file << endl;
+            //cout << *path << endl;
+            if( file != *path )
+                continue;
+
             if( result->end() == find(result->begin(), result->end(), std::stoll(S_temp)) )
                 result->push_back(std::stoll(S_temp));//string is translated to long long
         }
@@ -576,6 +646,9 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
 
             std::string S_temp(str);*/
 
+            //this flag is used to skip parametrization
+            char continue_flag = 0;
+
             std::string S_temp;//S_temp stores line that has been read
             std::getline(in_file, S_temp);
             line++;//number of current line
@@ -609,8 +682,8 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                             {
                                 S_temp = last + S_temp;
                                 previous.pop_back();
-                                previous.push_back(S_temp);
-                                continue;
+                                //previous.push_back(S_temp);
+                                continue_flag = 1;
                             }
                         }
                     }
@@ -625,20 +698,22 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
 
                 std::string outstr;
                 std::vector<string> temp_unused;
-
-                if(Parametrization(S_temp, &outstr, &temp_unused, showflag, logfile) == 1)//if we encountered a function declaration then
-                {//we'll check if we encountered a function declaration and skip it if so
-                    if( showflag == 1)
-                    {
-                        logfile << "String number " << line << " contains NOT C lexeme." << endl;
-                        logfile << S_temp << endl << outstr << endl;
+                if(continue_flag == 0)
+                {
+                    if(Parametrization(S_temp, &outstr, &temp_unused, showflag, logfile) == 1)//if we encountered a function declaration then
+                    {//we'll check if we encountered a function declaration and skip it if so
+                        if( showflag == 1)
+                        {
+                            logfile << "String number " << line << " contains NOT C lexeme." << endl;
+                            logfile << S_temp << endl << outstr << endl;
+                        }
+                        continue;
                     }
-                    break;
                 }
 
                 //here we check if we encountered a function declaration - if so skip it
                 string PFPF("CBP4_PARAMETERIZED_FUNCNAME_POSSIBLE_FUNCDEF");
-                if( ( outstr.find( PFPF + "(" ) != string::npos || outstr.find( PFPF + " (") != string::npos ) && outstr[ outstr.size() - 1] != ';'
+                if( continue_flag == 0 && ( outstr.find( PFPF + "(" ) != string::npos || outstr.find( PFPF + " (") != string::npos ) && outstr[ outstr.size() - 1] != ';'
                 && outstr.find("do") != 0 && outstr.find("else") != 0 && outstr.find("enum") != 0 && outstr.find("for") != 0 && outstr.find("if") != 0
                 && outstr.find("sizeof") != 0 && outstr.find("return") != 0 && outstr.find("switch") != 0 && outstr.find("while") != 0 && outstr.find("{") != 0
                 && outstr.find("case") != 0  && outstr[0] != '{' && outstr[0] != ';' && outstr[0] != '{' && outstr[0] != ';')
@@ -666,6 +741,8 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                             cout << previous[qwe] << endl;*/
 
                         previous.push_back(S_temp);
+
+                        continue_flag = 0;
 
                         char unexpected_eof = 0;
                         while(unexpected_eof != 1 && j < prev_size && !in_file.eof())
@@ -707,8 +784,9 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                                 {
                                                     S_temp2 = last + S_temp2;
                                                     previous.pop_back();
-                                                    previous.push_back(S_temp2);
-                                                    continue;
+                                                    //previous.push_back(S_temp2);
+                                                    continue_flag = 1;
+                                                    --j;
                                                 }
                                             }
                                         }
@@ -719,18 +797,22 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                     std::string outstr2;
                                     std::vector<string> temp2_unused;
 
-                                    if(Parametrization(S_temp2, &outstr2, &temp2_unused, showflag, logfile) == 1)//if we encountered a function declaration then
+
+                                    if(continue_flag == 0)
                                     {
-                                        if(showflag == 1)
+                                        if(Parametrization(S_temp2, &outstr2, &temp2_unused, showflag, logfile) == 1)//if we encountered a function declaration then
                                         {
-                                            logfile << "String number " << line << " contains NOT C lexeme." << endl;
-                                            logfile << S_temp << endl << outstr2 << endl;
+                                            if(showflag == 1)
+                                            {
+                                                logfile << "String number " << line << " contains NOT C lexeme." << endl;
+                                                logfile << S_temp << endl << outstr2 << endl;
+                                            }
+                                            continue;
                                         }
-                                        break;
                                     }
 
                                     //here we check if we encountered a function declaration - if so skip it
-                                    if( ( outstr2.find( PFPF + "(" ) != string::npos || outstr2.find( PFPF + " (") != string::npos )
+                                    if( continue_flag == 0 && ( outstr2.find( PFPF + "(" ) != string::npos || outstr2.find( PFPF + " (") != string::npos )
                                     && outstr2[outstr2.size() - 1] != ';' && outstr2.find("do") != 0 && outstr2.find("else") != 0 && outstr2.find("enum") != 0
                                     && outstr2.find("for") != 0 && outstr2.find("if") != 0 && outstr2.find("sizeof") != 0 && outstr2.find("return") != 0
                                     && outstr2.find("switch") != 0 && outstr2.find("while") != 0 && outstr2.find("{") != 0 && outstr2.find("case") != 0
@@ -777,6 +859,10 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
 
                         if(previous.size() > FragmentSize)
                             previous.erase(previous.begin(), previous.begin() + previous.size() - FragmentSize);
+
+                        //for(size_t o = 0; o < Exmplr.fragment.size(); ++o)
+                            //cout << Exmplr.fragment[o] << endl;
+                            //cout << j << endl;
 
                         //now we have fragment of code ready
                         if(Exmplr.fragment.size() != 0)//because empty weaknesses are useless

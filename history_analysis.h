@@ -110,9 +110,12 @@ void Find_Indices_of_Clusters(string S_compared, vector<Cluster>* Clusters, vect
 
     for(size_t i = 0; i < Clusters->size(); ++i)
     {
-        int j = (*Clusters)[i].commits[0].files[0].exemplars[0].fragment.size() / 2;//because size is always 2 * FragmentSize + 1, middle string index is j
+        int j =  (*Clusters)[i].commits[0].files[0].exemplars[0].fragment.size() / 2 ;//because size is always 2 * FragmentSize + 1, middle string index is j
         /*if(S_compared.compare( (*Clusters)[i].commits[0].files[0].exemplars[0].fragment[j] ) == 0)
             Need_to_Compare->push_back(i);*/
+        if( j < 0 )
+            continue;
+
         vector<string> second;
         second.push_back( (*Clusters)[i].commits[0].files[0].exemplars[0].fragment[j] );
 
@@ -162,6 +165,9 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
 
                 while(!in_file.eof())
                 {
+                    //this flag is used to skip parametrization
+                    char continue_flag = 0;
+
                     std::string S_temp;//S_temp stores line that has been read
                     std::getline(in_file, S_temp);
                     line++;//number of current line
@@ -194,8 +200,8 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                     {
                                         S_temp = last + S_temp;
                                         previous.pop_back();
-                                        previous.push_back(S_temp);
-                                        continue;
+                                        //previous.push_back(S_temp);
+                                        continue_flag = 1;
                                     }
                                 }
                             }
@@ -211,19 +217,22 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                         std::string outstr;
                         std::vector<string> temp_unused;
 
-                        if(Parametrization(S_temp, &outstr, &temp_unused, showflag, logfile) == 1)//if we encountered a function declaration then
-                        {//we'll check if we encountered a function declaration and skip it if so
-                            if(showflag == 1)
-                            {
-                                logfile << "String number " << line << " contains NOT C lexeme." << endl;
-                                logfile << S_temp << endl << outstr << endl;
+                        if(continue_flag == 0)
+                        {
+                            if(Parametrization(S_temp, &outstr, &temp_unused, showflag, logfile) == 1)//if we encountered a function declaration then
+                            {//we'll check if we encountered a function declaration and skip it if so
+                                if(showflag == 1)
+                                {
+                                    logfile << "String number " << line << " contains NOT C lexeme." << endl;
+                                    logfile << S_temp << endl << outstr << endl;
+                                }
+                                continue;
                             }
-                            break;
                         }
 
                         //here we check if we encountered a function declaration - if so skip it
                         string PFPF("CBP4_PARAMETERIZED_FUNCNAME_POSSIBLE_FUNCDEF");
-                        if( ( outstr.find( PFPF + "(" ) != string::npos || outstr.find( PFPF + " (") != string::npos ) && outstr[ outstr.size() - 1] != ';'
+                        if( continue_flag == 0 && ( outstr.find( PFPF + "(" ) != string::npos || outstr.find( PFPF + " (") != string::npos ) && outstr[ outstr.size() - 1] != ';'
                         && outstr.find("do") != 0 && outstr.find("else") != 0 && outstr.find("enum") != 0 && outstr.find("for") != 0 && outstr.find("if") != 0
                         && outstr.find("sizeof") != 0 && outstr.find("return") != 0 && outstr.find("switch") != 0 && outstr.find("while") != 0
                         && outstr.find("{") != 0 && outstr.find("case") != 0  && outstr[0] != '{' && outstr[0] != ';' && outstr[0] != '{' && outstr[0] != ';')
@@ -255,6 +264,8 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                 int t = 0, prev_size = previous.size();//prev_size - size of previous[] before adding string with weakness
                                 //j counts number of lines that have been added to previous[]
                                 previous.push_back(S_temp);
+
+                                continue_flag = 0;
 
                                 char unexpected_eof = 0;
                                 while(unexpected_eof != 1 && t < prev_size && !in_file.eof())
@@ -291,8 +302,9 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                                     {
                                                         S_temp2 = last + S_temp2;
                                                         previous.pop_back();
-                                                        previous.push_back(S_temp2);
-                                                        continue;
+                                                        //previous.push_back(S_temp2);
+                                                        continue_flag = 1;
+                                                        --t;
                                                     }
                                                 }
                                             }
@@ -303,18 +315,21 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                         std::string outstr2;
                                         std::vector<string> temp2_unused;
 
-                                        if(Parametrization(S_temp2, &outstr2, &temp2_unused, showflag, logfile) == 1)//if we encountered a function declaration then
+                                        if(continue_flag == 0)
                                         {
-                                            if(showflag == 1)
+                                            if(Parametrization(S_temp2, &outstr2, &temp2_unused, showflag, logfile) == 1)//if we encountered a function declaration then
                                             {
-                                                logfile << "String number " << line << " contains NOT C lexeme." << endl;
-                                                logfile << S_temp << endl << outstr2 << endl;
+                                                if(showflag == 1)
+                                                {
+                                                    logfile << "String number " << line << " contains NOT C lexeme." << endl;
+                                                    logfile << S_temp << endl << outstr2 << endl;
+                                                }
+                                                continue;
                                             }
-                                            break;
                                         }
 
                                         //here we check if we encountered a function declaration - if so skip it
-                                        if( ( outstr2.find( PFPF + "(" ) != string::npos || outstr2.find( PFPF + " (") != string::npos )
+                                        if( continue_flag == 0 && ( outstr2.find( PFPF + "(" ) != string::npos || outstr2.find( PFPF + " (") != string::npos )
                                         && outstr2[outstr2.size() - 1] != ';' && outstr2.find("do") != 0 && outstr2.find("else") != 0 && outstr2.find("enum") != 0
                                         && outstr2.find("for") != 0 && outstr2.find("if") != 0 && outstr2.find("sizeof") != 0 && outstr2.find("return") != 0
                                         && outstr2.find("switch") != 0 && outstr2.find("while") != 0 && outstr2.find("{") != 0 && outstr2.find("case") != 0
@@ -356,6 +371,10 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                 {
                                     previous.erase(previous.begin(), previous.begin() + prev_size - t);
                                 }
+
+                                //cout << Need_to_Compare.size() << endl << line << endl << previous.size() << endl;
+                                //for(size_t o = 0; o < previous.size(); ++o)
+                                    //cout << previous[o] << endl;
 
                                 //AT THIS POINT I HAVE A FRAGMENT OF SIZE 2*FragmentSize + 1 or less THAT CONTAINS WEAKNESS
                                 Exmplr.fragment = previous;
