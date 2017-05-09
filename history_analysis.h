@@ -103,31 +103,63 @@ int Fill_Commit_Levels(vector<Commit_Level>* Commit_Levels, vector<string>* Star
     return 0;
 }
 
+string erase_fbraces(string S)
+{
+    while( S[0] == '{')
+        S.erase(0, 1);
+
+    long k = (long)S.size() - 1;
+    while( k >= 0 )
+    {
+        if( S[k] == '}' )
+        {
+            S.erase( k, 1 );
+        }
+        else
+        {
+            if( k >= 1 && S[k] == ';' && S[k - 1] == '}')
+            {
+                S.erase( k - 1, 2 );
+            }
+            else
+                break;
+        }
+
+        k = (long)S.size() - 1;
+    }
+
+    return S;
+}
+
 void Find_Indices_of_Clusters(string S_compared, vector<Cluster>* Clusters, vector<size_t>* Need_to_Compare, string path_to_fake_libc, char showflag, ofstream& logfile)//returns number of cluster that contains similar original string or -1 otherwise
 {
-    vector<string> first;
-    first.push_back(S_compared);
+    S_compared = erase_fbraces(S_compared);
+
+    vector<string> comp;
+    comp.push_back(S_compared);
+    Exemplar compared;
+        compared.fragment = comp;
 
     for(size_t i = 0; i < Clusters->size(); ++i)
     {
-        int j =  (*Clusters)[i].commits[0].files[0].exemplars[0].fragment.size() / 2 ;//because size is always 2 * FragmentSize + 1, middle string index is j
+        int j = (*Clusters)[i].commits[0].files[0].exemplars[0].fragment.size() / 2 ;//because size is always 2 * k + 1, middle string index is j
         /*if(S_compared.compare( (*Clusters)[i].commits[0].files[0].exemplars[0].fragment[j] ) == 0)
             Need_to_Compare->push_back(i);*/
         if( j < 0 )
             continue;
 
-        vector<string> second;
-        second.push_back( (*Clusters)[i].commits[0].files[0].exemplars[0].fragment[j] );
+        string j_string = (*Clusters)[i].commits[0].files[0].exemplars[0].fragment[j];
+        j_string = erase_fbraces(j_string);
 
-        Exemplar exemplar1;
-        exemplar1.fragment = first;
+        vector<string> orig;
+        orig.push_back( j_string );
 
-        Exemplar exemplar2;
-        exemplar2.fragment = second;
+        Exemplar original;
+        original.fragment = orig;
 
         //cout << "OK ?" << endl;
 
-        if(Exemplars_Are_Equal(exemplar1, exemplar2, path_to_fake_libc, showflag, logfile) == 1)
+        if(Exemplars_Are_Equal(original, compared, path_to_fake_libc, showflag, logfile) == 1)
             Need_to_Compare->push_back(i);
 
         //cout << "OK !!!" << endl;
@@ -184,7 +216,7 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                         {
                             if( S_temp.size() >= 2 && S_temp[ S_temp.size() - 1 ] == '/' && S_temp[ S_temp.size() - 2 ] == '*' )
                             {
-                                cout << "ASAS 1\n";
+                                //cout << "ASAS 1\n";
                                 multiline_comment = 0;
                                 continue;
                             }
@@ -259,6 +291,50 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                         else
                         {
                             //cout << line << endl;
+                            char post_read_flag = 0;
+                            continue_flag = 0;
+                            std::string S_temp2;
+                            /*while(!in_file.eof())
+                            {
+                                std::getline(in_file, S_temp2);
+                                line++;
+
+                                Delete_Extra_Spaces(&S_temp);
+                                Delete_Extra_Spaces(&S_temp2);
+
+                                if( !in_file.eof() && (S_temp.size() >= 2 && S_temp[0]) || (S_temp.size() >= 1 && S_temp[0] == '#' ) )
+                                {
+                                    continue_flag = 0;
+                                    //incomplete line can be found for example when defining a function in some of C coding styles
+                                    if(S_temp[S_temp.size() - 1] != ';' && S_temp[S_temp.size() - 1] != '}' && S_temp[S_temp.size() - 1] != '{')
+                                    {
+                                        S_temp2 = S_temp + " " + S_temp2;//new S_temp is last + S_temp
+                                        //because last element was incomplete - we will add it again - full this time
+                                    }
+                                    else
+                                    {
+                                        if(S_temp == "{")
+                                        {
+                                            S_temp2 = S_temp + S_temp2;
+                                        }
+                                        else
+                                        {
+                                            if(S_temp2 == "}" || S_temp2 == "};" || S_temp2 == ";")
+                                            {
+                                                S_temp2 = S_temp + S_temp2;
+                                                //previous.push_back(S_temp2);
+                                                continue_flag = 1;
+                                            }
+                                            else
+                                                break;
+                                        }
+                                    }
+
+                                    S_temp = S_temp2;
+                                }
+                                else
+                                    break;
+                            }*/
 
                             vector<size_t> Need_to_Compare;//will contain indices of clusters, that have marked string similar to current string
                             if( (S_temp.size() >= 2 && S_temp[0] == '/' && S_temp[1] == '/') || (S_temp.size() >= 1 && S_temp[0] == '#' ) )
@@ -288,16 +364,18 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                 //cout << "t " << t << " P " << previous.size() << endl;
                                 //cout << endl;
 
-
-
                                 char unexpected_eof = 0;
                                 while(unexpected_eof != 1 && t < prev_size && !in_file.eof())
                                 {
                                     continue_flag = 0;
 
-                                    std::string S_temp2;
-                                    std::getline(in_file, S_temp2);
-                                    line++;
+                                    if(post_read_flag == 0)
+                                    {
+                                        std::getline(in_file, S_temp2);
+                                        line++;
+                                    }
+                                    else
+                                        post_read_flag = 0;
 
                                     Delete_Extra_Spaces(&S_temp2);
 
@@ -309,7 +387,7 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                         {
                                             if( S_temp2.size() >= 2 && S_temp2[ S_temp2.size() - 1 ] == '/' && S_temp2[ S_temp2.size() - 2 ] == '*' )
                                             {
-                                            cout << "ASAS 2\n";
+                                                //cout << "ASAS 2\n";
                                                 multiline_comment = 0;
                                                 continue;
                                             }
@@ -403,7 +481,10 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                             }
 
                                             if(S_temp2.size() >= 2 && S_temp2[0] == '/' && S_temp2[1] == '*')
-                                                {multiline_comment = 1; cout << "BBB" << endl;}
+                                            {
+                                                multiline_comment = 1;
+                                                //cout << "BBB" << endl;
+                                            }
                                         }
                                     }
                                 }
@@ -437,8 +518,10 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                 {
                                     size_t ix = 0;
                                     int Found_Equal = 0;
+                                    //cout << Need_to_Compare.size() << endl << Clusters->size() << endl;
                                     while( ix < Need_to_Compare.size() && Found_Equal != 1 )
                                     {
+                                        //cout << (*Clusters)[ Need_to_Compare[ix] ].commits[0].files[0].exemplars[0].fragment[0] << endl;
                                         Found_Equal = Exemplars_Are_Equal( (*Clusters)[ Need_to_Compare[ix] ].commits[0].files[0].exemplars[0], Exmplr, path_to_fake_libc, showflag, logfile );
                                         //cout << Found_Equal << endl;
                                         if(Found_Equal != 1)
@@ -447,6 +530,8 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                         //or ix value will be index of cluster, that contains equal exemplar
                                         }
                                     }
+
+                                    //cout << Found_Equal << endl;
 
                                     if(Found_Equal == 1)
                                         ix = Need_to_Compare[ix];
@@ -537,7 +622,10 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                             }
 
                             if(S_temp.size() >= 2 && S_temp[0] == '/' && S_temp[1] == '*')
-                               { multiline_comment = 1; cout << "AAA" << endl; }
+                            {
+                                multiline_comment = 1;
+                                //cout << "AAA" << endl;
+                            }
                         }
                     }
                 }

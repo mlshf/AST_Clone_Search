@@ -410,7 +410,10 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
     //if original is bigger than compared than there's no comparison
     //if original is smaller than compared but it's only one line - than there's no comparison
     if( Original.fragment.size() != 1 && Compared.fragment.size() == 1 )
+    {
+        //cout << Compared.fragment[0] << endl;
         return 0;
+    }
 
     Exemplar big = Original, small = Compared;
 
@@ -479,6 +482,8 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
     //were unable to genereate typedefs
     if( ( typedefs1.size() > 0 && typedefs1[0] == "FAIL" ) || ( typedefs2.size() > 0 && typedefs2[0] == "FAIL" ) )
     {
+
+        //cout << "FAILED TO AT\n " << first[0] << endl << second[0] << endl;
         if(showflag == 1)
             logfile << "Could not create additional pseudo-typedefs." << endl;
         //cout << "Gen typedefs failed!" << endl;
@@ -670,7 +675,7 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                 {
                     if( S_temp.size() >= 2 && S_temp[ S_temp.size() - 1 ] == '/' && S_temp[ S_temp.size() - 2 ] == '*' )
                     {
-                    cout << "ASAS 1\n";
+                        //cout << "ASAS 1\n";
                         multiline_comment = 0;
                         continue;
                     }
@@ -786,7 +791,7 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                     {
                                         if( S_temp2.size() >= 2 && S_temp2[ S_temp2.size() - 1 ] == '/' && S_temp2[ S_temp2.size() - 2 ] == '*' )
                                         {
-                                        cout << "ASAS 2\n";
+                                            //cout << "ASAS 2\n";
                                             multiline_comment = 0;
                                             continue;
                                         }
@@ -884,7 +889,10 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                     }
 
                                     if(S_temp2.size() >= 2 && S_temp2[0] == '/' && S_temp2[1] == '*')
-                                        {multiline_comment = 1; cout << "BBB" << endl; }
+                                    {
+                                        multiline_comment = 1;
+                                        //cout << "BBB" << endl;
+                                    }
                                 }
                             //j++;
                         }
@@ -900,10 +908,10 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                         if(previous.size() > FragmentSize)
                             previous.erase(previous.begin(), previous.begin() + previous.size() - FragmentSize);
 
-                        cout << "LINE " << Exmplr.line << endl;
-                        for(size_t o = 0; o < Exmplr.fragment.size(); ++o)
-                            cout << Exmplr.fragment[o] << endl;
-                        cout << "SIZE " << Exmplr.fragment.size() << endl;
+                        //cout << "LINE " << Exmplr.line << endl;
+                        //for(size_t o = 0; o < Exmplr.fragment.size(); ++o)
+                            //cout << Exmplr.fragment[o] << endl;
+                        //cout << "SIZE " << Exmplr.fragment.size() << endl;
 
                         //now we have fragment of code ready
                         if(Exmplr.fragment.size() != 0)//because empty weaknesses are useless
@@ -1037,7 +1045,10 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                 }
 
                 if(S_temp.size() >= 2 && S_temp[0] == '/' && S_temp[1] == '*')
-                {    multiline_comment = 1; cout << "AAA" << endl;}
+                {
+                    multiline_comment = 1;
+                    //cout << "AAA" << endl;
+                }
             }
         }
 
