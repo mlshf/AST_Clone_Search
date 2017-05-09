@@ -163,6 +163,8 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
 
                 long long line = 0;//stores current number of line that was read
 
+                char multiline_comment = 0;
+
                 while(!in_file.eof())
                 {
                     //this flag is used to skip parametrization
@@ -177,6 +179,21 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                     //if we've read not end of file, not empty string and not a commentary
                     if(!in_file.eof() && Is_String_Not_Empty(S_temp) == 1 && S_temp[0] != '/' && S_temp[0] != '#')
                     {
+
+                        if(multiline_comment == 1)
+                        {
+                            if( S_temp.size() >= 2 && S_temp[ S_temp.size() - 1 ] == '/' && S_temp[ S_temp.size() - 2 ] == '*' )
+                            {
+                                cout << "ASAS 1\n";
+                                multiline_comment = 0;
+                                continue;
+                            }
+                            else
+                            {
+                                continue;
+                            }
+                        }
+
                         //we check if last line in prev does not end with ; or { or } - meaning it's an incomplete line
                         if(previous.size() > 0)
                         {
@@ -265,11 +282,19 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                 //j counts number of lines that have been added to previous[]
                                 previous.push_back(S_temp);
 
-                                continue_flag = 0;
+                                //cout << "LINE " << Exmplr.line << endl;
+                                //for(size_t ooo = 0; ooo < previous.size(); ++ooo)
+                                    //cout << previous[ooo] << endl;
+                                //cout << "t " << t << " P " << previous.size() << endl;
+                                //cout << endl;
+
+
 
                                 char unexpected_eof = 0;
                                 while(unexpected_eof != 1 && t < prev_size && !in_file.eof())
                                 {
+                                    continue_flag = 0;
+
                                     std::string S_temp2;
                                     std::getline(in_file, S_temp2);
                                     line++;
@@ -279,6 +304,21 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                     //if we did not encounter end of file, string is not empty and it is not a commentary
                                     if(!in_file.eof() && Is_String_Not_Empty(S_temp2) == 1 && S_temp2[0] != '/' && S_temp[0] != '#')
                                     {
+
+                                        if(multiline_comment == 1)
+                                        {
+                                            if( S_temp2.size() >= 2 && S_temp2[ S_temp2.size() - 1 ] == '/' && S_temp2[ S_temp2.size() - 2 ] == '*' )
+                                            {
+                                            cout << "ASAS 2\n";
+                                                multiline_comment = 0;
+                                                continue;
+                                            }
+                                            else
+                                            {
+                                                continue;
+                                            }
+                                        }
+
                                         //we check if last line in prev does not end with ; or { or } - meaning it's an incomplete line
                                         if(previous.size() > 0)
                                         {
@@ -361,6 +401,9 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                                 unexpected_eof = 1;
                                                 break;
                                             }
+
+                                            if(S_temp2.size() >= 2 && S_temp2[0] == '/' && S_temp2[1] == '*')
+                                                {multiline_comment = 1; cout << "BBB" << endl;}
                                         }
                                     }
                                 }
@@ -382,6 +425,13 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                 if(previous.size() > FragmentSize)
                                     previous.erase(previous.begin(), previous.begin() + previous.size() - FragmentSize);
 
+                                //cout << "LINE " << Exmplr.line << endl;
+                                //for(size_t ooo = 0; ooo < Exmplr.fragment.size(); ++ooo)
+                                    //cout << Exmplr.fragment[ooo] << endl;
+                                //cout << "t " << t << " P " << previous.size() << " SIZE " << Exmplr.fragment.size() << endl;
+                                //cout << endl;
+
+
                                 //now we have fragment of code ready
                                 if(Exmplr.fragment.size() != 0)//because empty weaknesses are useless
                                 {
@@ -391,13 +441,20 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                     {
                                         Found_Equal = Exemplars_Are_Equal( (*Clusters)[ Need_to_Compare[ix] ].commits[0].files[0].exemplars[0], Exmplr, path_to_fake_libc, showflag, logfile );
                                         //cout << Found_Equal << endl;
-                                        if(Found_Equal != 1) ++ix;//so that at the end we will have either ix = clusters.size() => no equal exemplars were found
+                                        if(Found_Equal != 1)
+                                        {
+                                            ++ix;//so that at the end we will have either ix = clusters.size() => no equal exemplars were found
                                         //or ix value will be index of cluster, that contains equal exemplar
+                                        }
                                     }
 
                                     if(Found_Equal == 1)
                                         ix = Need_to_Compare[ix];
                                     //now ix contains not index of element of Need_to_Compare that contains index of needed cluster, but index of needed cluster
+
+                                    //for(size_t ooo = 0; ooo < Exmplr.fragment.size(); ++ooo)
+                                        //cout << Exmplr.fragment[ooo] << endl;
+                                    //cout << endl;
 
                                     if(Found_Equal == 1)//we have found equal exemplar
                                     {
@@ -478,6 +535,9 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                     logfile << "Unexpected end of file " << Paths[k] << endl;
                                 break;//return 1;
                             }
+
+                            if(S_temp.size() >= 2 && S_temp[0] == '/' && S_temp[1] == '*')
+                               { multiline_comment = 1; cout << "AAA" << endl; }
                         }
                     }
                 }

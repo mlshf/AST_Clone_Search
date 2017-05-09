@@ -409,20 +409,26 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
 {
     //if original is bigger than compared than there's no comparison
     //if original is smaller than compared but it's only one line - than there's no comparison
-    if( Original.fragment.size() > Compared.fragment.size() || ( Original.fragment.size() < Compared.fragment.size() && Original.fragment.size() == 1 ) )
+    if( Original.fragment.size() != 1 && Compared.fragment.size() == 1 )
         return 0;
 
-    int offset  = ((int)Compared.fragment.size() - (int)Original.fragment.size()) / 2;
+    Exemplar big = Original, small = Compared;
+
+    int offset  = ((int)big.fragment.size() - (int)small.fragment.size()) / 2;
 
     if(offset < 0)
-        return 0;
+    {
+        offset = abs(offset);
+        big = Compared;
+        small = Original;
+    }
 
     size_t i = 0;
     std::vector<string> first, second;
-    for(; i < Original.fragment.size() && offset + i < Compared.fragment.size() ; ++i)
+    for(; i < small.fragment.size() && offset + i < big.fragment.size() ; ++i)
     {
-        first.push_back( Original.fragment[i] );
-        second.push_back( Compared.fragment[offset + i] );
+        first.push_back( small.fragment[i] );
+        second.push_back( big.fragment[offset + i] );
     }
 
     i = 0;
@@ -512,7 +518,7 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
     second.insert(second.begin(), "#include <stdlib.h>");
     second.insert(second.begin(), "#include <stdio.h>");
 
-    /*string filename = "CPR4_GCC_PP_C99_AST_1.c";
+    string filename = "CPR4_GCC_PP_C99_AST_1.c";
 
     write_to_file(filename, first);
 
@@ -527,8 +533,8 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
         //for(size_t j = 0; j < first.size(); ++j)
            // cout << first[j] << "_______________" << second[j] << endl;}
 
-    exec_git_command("gcc -E -I" + path_to_fake_libc + "fake_libc_include CPR4_GCC_PP_C99_AST_1.c -o out_CPR4_GCC_PP_C99_AST_1.c", showflag, logfile);
-    exec_git_command("gcc -E -I" + path_to_fake_libc + "fake_libc_include CPR4_GCC_PP_C99_AST_2.c -o out_CPR4_GCC_PP_C99_AST_2.c", showflag, logfile);
+    exec_git_command("gcc -w -E -I" + path_to_fake_libc + "fake_libc_include CPR4_GCC_PP_C99_AST_1.c -o out_CPR4_GCC_PP_C99_AST_1.c", showflag, logfile);
+    exec_git_command("gcc -w -E -I" + path_to_fake_libc + "fake_libc_include CPR4_GCC_PP_C99_AST_2.c -o out_CPR4_GCC_PP_C99_AST_2.c", showflag, logfile);
 
     filename = "CPR4_GCC_PP_C99_AST_1.c";
     remove( filename.c_str() );
@@ -555,7 +561,7 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
         logfile << result[0] << endl;
 
     if( result.size() < 1 || result[0].size() < 1 || result[0][0] != '1')
-        return 0;*/
+        return 0;
 
     //cout << result[0] << endl;
 
@@ -639,6 +645,8 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
 
         long long line = 0;//stores current number of line that was read
 
+        char multiline_comment = 0;
+
         while(/*!feof(in_file)*/!in_file.eof() && defect_lines.size() > 0)
         {/*
             char str[256];
@@ -656,8 +664,21 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
             Delete_Extra_Spaces(&S_temp);
 
             //if we've read not end of file, not empty string and not a commentary
-            if(!in_file.eof() && Is_String_Not_Empty(S_temp) == 1 && S_temp[0] != '/' && S_temp[0] != '#')
+            if(!in_file.eof() && Is_String_Not_Empty(S_temp) == 1 && S_temp[0] != '/' && S_temp[0] != '#' )
             {
+                if(multiline_comment == 1)
+                {
+                    if( S_temp.size() >= 2 && S_temp[ S_temp.size() - 1 ] == '/' && S_temp[ S_temp.size() - 2 ] == '*' )
+                    {
+                    cout << "ASAS 1\n";
+                        multiline_comment = 0;
+                        continue;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
 
                 //we check if last line in prev does not end with ; or { or } - meaning it's an incomplete line
                 if(previous.size() > 0)
@@ -742,11 +763,10 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
 
                         previous.push_back(S_temp);
 
-                        continue_flag = 0;
-
                         char unexpected_eof = 0;
                         while(unexpected_eof != 1 && j < prev_size && !in_file.eof())
                         {
+                            continue_flag = 0;
                             /*
                                 char str_t[256];
                                 fscanf(in_file, "%[^\n]\n", str_t);
@@ -761,6 +781,21 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                 //if we did not encounter end of file, string is not empty and it is not a commentary
                                 if(!in_file.eof() && Is_String_Not_Empty(S_temp2) == 1 && S_temp2[0] != '/' && S_temp2[0] != '#')
                                 {
+
+                                    if(multiline_comment == 1)
+                                    {
+                                        if( S_temp2.size() >= 2 && S_temp2[ S_temp2.size() - 1 ] == '/' && S_temp2[ S_temp2.size() - 2 ] == '*' )
+                                        {
+                                        cout << "ASAS 2\n";
+                                            multiline_comment = 0;
+                                            continue;
+                                        }
+                                        else
+                                        {
+                                            continue;
+                                        }
+                                    }
+
                                     //we check if last line in prev does not end with ; or { or } - meaning it's an incomplete line
                                     if(previous.size() > 0)
                                     {
@@ -818,6 +853,8 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                     && outstr2.find("switch") != 0 && outstr2.find("while") != 0 && outstr2.find("{") != 0 && outstr2.find("case") != 0
                                     && outstr2[0] != '{' && outstr2[0] != ';')
                                     {
+                                        //cout << "CLEAR!!!" << endl;
+                                        //cout << S_temp2 << endl << outstr2 << endl;
                                         //j is current number of added lines beyond prev_size + 1. if it's 0 it means that we havent added any yet
                                         //we have to leave only 2 * j + 1 lines in previous
                                         break;//while cycle is exited
@@ -845,6 +882,9 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                             break;
                                         }
                                     }
+
+                                    if(S_temp2.size() >= 2 && S_temp2[0] == '/' && S_temp2[1] == '*')
+                                        {multiline_comment = 1; cout << "BBB" << endl; }
                                 }
                             //j++;
                         }
@@ -860,9 +900,10 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                         if(previous.size() > FragmentSize)
                             previous.erase(previous.begin(), previous.begin() + previous.size() - FragmentSize);
 
-                        //for(size_t o = 0; o < Exmplr.fragment.size(); ++o)
-                            //cout << Exmplr.fragment[o] << endl;
-                            //cout << j << endl;
+                        cout << "LINE " << Exmplr.line << endl;
+                        for(size_t o = 0; o < Exmplr.fragment.size(); ++o)
+                            cout << Exmplr.fragment[o] << endl;
+                        cout << "SIZE " << Exmplr.fragment.size() << endl;
 
                         //now we have fragment of code ready
                         if(Exmplr.fragment.size() != 0)//because empty weaknesses are useless
@@ -994,6 +1035,9 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                         break;
                     }
                 }
+
+                if(S_temp.size() >= 2 && S_temp[0] == '/' && S_temp[1] == '*')
+                {    multiline_comment = 1; cout << "AAA" << endl;}
             }
         }
 

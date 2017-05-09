@@ -38,7 +38,7 @@
 	<stddef.h>
 	<fstream>
 
-1494184563 source:/home/nikita/Course_Realization/cluster_init.h
+1494267975 source:/home/nikita/Course_Realization/cluster_init.h
 	"cluster.h"
 	<boost/filesystem.hpp>
 	<iostream>
@@ -54,7 +54,7 @@
 	"git_exec.h"
 	"lexical.h"
 
-1494187209 /home/nikita/Course_Realization/cluster_init.h
+1494347398 /home/nikita/Course_Realization/cluster_init.h
 	"cluster.h"
 	<boost/filesystem.hpp>
 	<iostream>
@@ -88,7 +88,7 @@
 	<strings.h>
 	<vector>
 
-1494186234 source:/home/nikita/Course_Realization/history_analysis.h
+1494272607 source:/home/nikita/Course_Realization/history_analysis.h
 	"cluster.h"
 	"cluster_init.h"
 	"git_exec.h"
@@ -105,7 +105,7 @@
 	<cmath>
 	"lexical.h"
 
-1494186234 /home/nikita/Course_Realization/history_analysis.h
+1494272607 /home/nikita/Course_Realization/history_analysis.h
 	"cluster.h"
 	"cluster_init.h"
 	"git_exec.h"
