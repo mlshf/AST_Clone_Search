@@ -38,7 +38,11 @@ OUTPUT is a path to file, that will contain result of programm's work, without e
 For example '../io_dir/output_file'. If there are two distinct types of fragments, then in ../io_dir directory there will be four files:
 output_file_1.gv, output_file_2.gv, output_file_1.png and output_file_2.png, where .gv files are processed by graphviz and .png files present the result in a form of graph - file per distinct type of fragment.
 
-Programm finds all fragments of C code of size not bigger than 2 * SIZE + 1 that are clones of those fragment of size <= 2 * SIZE + 1 whose central lines were marked with MARKER commentary in .c and .h files of each commit after the first one from the SHA1 list in SHA1. Clones can be different in names of variables and numeric constants. Result of work is a set of graphs, each of which describes a cluster of clones, that belong to unique type of original fragment with which cluster was initialized. All fragments of code in cluster are clones of some original fragment, clusters ( ~ sets) do not intersect. Originial frament location and size is described in description of the first commit in cluster.
+Programm finds all fragments of C code of size not bigger than 2 * SIZE + 1 that are clones of those fragment of size <= 2 * SIZE + 1 
+whose central lines were marked with MARKER commentary in .c and .h files of each commit after the first one from the SHA1 list in SHA1. 
+Clones can be different in names of variables and numeric constants. Result of work is a set of graphs, each of which describes a cluster of clones, 
+that belong to unique type of original fragment with which cluster was initialized. All fragments of code in cluster are clones of some original fragment, 
+clusters ( ~ sets) do not intersect. Originial frament location and size is described in description of the first commit in cluster.
 
 Example of lanch:
 ../../Course_Realization/bin/Release/Course_Realization '../../io_dir/SHA1_list.txt' 3 '../../io_dir/output_file'
