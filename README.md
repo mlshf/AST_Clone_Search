@@ -1,4 +1,4 @@
-﻿# Course_Realization
+﻿# AST Clone Search
 Uses Boost library.
 Standard: C++11.
 Uses GraphViz (dot).
