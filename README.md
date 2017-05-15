@@ -17,7 +17,7 @@ Launching:
 
 Command line arguments when launching should be: PATH SHA1 SIZE OUTPUT
 
-PATH is replaced with path to executable of Course_Realization from directory, in which program is launched.
+PATH is replaced with path to executable of AST_Clone_Search from directory, in which program is launched.
 
 SHA1 is replaced with path (analogically, from launching directory) to .txt file, that contains a list of SHA1-hashes of commits, that will be used for initializing.
 
@@ -45,6 +45,6 @@ that belong to unique type of original fragment with which cluster was initializ
 clusters ( ~ sets) do not intersect. Originial frament location and size is described in description of the first commit in cluster.
 
 Example of lanch:
-../../Course_Realization/bin/Release/Course_Realization '../../io_dir/SHA1_list.txt' 3 '../../io_dir/output_file'
+../../AST_Clone_Search/bin/Release/AST_Clone_Search '../../io_dir/SHA1_list.txt' 3 '../../io_dir/output_file'
 So program will find all fragments of code, not bigger that 2 * 3 + 1 = 7 lines, that are clones of fragments found by CppCheck when initializaing by SHA1_list.txt file 
 and create .png files with graphs describing set of fragments, that belong to one unique type of original fragment (those, that were marked).
