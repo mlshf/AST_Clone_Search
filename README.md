@@ -25,6 +25,7 @@ SIZE is replaced with maximal distance in lines, that can be between center of p
 For example for fragment:
 
 aaa
+
 bbb
 ccc
 ddd
