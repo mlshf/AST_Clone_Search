@@ -16,6 +16,7 @@
 #include "git_exec.h"
 #include "lexical.h"
 
+//its used to find all files in current directoriy and all its subdirectories
 using namespace boost::filesystem;
 struct recursive_directory_range
 {
@@ -28,6 +29,7 @@ struct recursive_directory_range
     path p_;
 };
 
+//returns True if file is of .c or .h extentsion, False otherwise
 int string_found_C_extension(std::string path)
 {
     bool Found = (path.find(".c", path.size() - 2) != std::string::npos);
@@ -63,6 +65,7 @@ int string_found_C_extension(std::string path)
     return Found;
 }
 
+//creates list of all files with .c or .h extensions in current directory and all its subdirectories
 int list_dir_contents(std::vector<std::string>* Paths, char showflag, ofstream& logfile)
 {
     if(showflag == 1)
@@ -80,14 +83,12 @@ int list_dir_contents(std::vector<std::string>* Paths, char showflag, ofstream& 
 
     if(showflag == 1)
         logfile << std::endl;
-  /*std::copy(
-  boost::filesystem::recursive_directory_iterator("./"),
-  boost::filesystem::recursive_directory_iterator(),
-  std::ostream_iterator<boost::filesystem::directory_entry>(std::cout, "\n"));*/
-return 0;
+
+    return 0;
 }
 
-int Is_String_Not_Empty(std::string S_temp)//1 - does contain non-space characters, 0 otherwise
+//1 - does contain non-space characters, 0 otherwise
+int Is_String_Not_Empty(std::string S_temp)
 {
     int String_Not_Empty = 0;
     for(size_t t = 0; t < S_temp.size() && String_Not_Empty != 1; ++t)
@@ -99,7 +100,8 @@ int Is_String_Not_Empty(std::string S_temp)//1 - does contain non-space characte
     return String_Not_Empty;
 }
 
-void Delete_Extra_Spaces(std::string* Str)//deletes space symbols except \n and comment
+//deletes space symbols in the beginning, at the end and inside the String
+void Delete_Extra_Spaces(std::string* Str)
 {
     int beginning_flag = 1, whitespace_row = 0;//beginning_flag means that we are at the beginning of the string
     //it is needed for erasing all the whitespaces in the beginning, before the first !isspace() symbol
@@ -144,54 +146,13 @@ void Delete_Extra_Spaces(std::string* Str)//deletes space symbols except \n and 
         }
     }
 
-    if( isspace((*Str)[Str->size() - 1]) && (*Str)[Str->size() - 1] != '\n')//deleting last space symbol
-        Str->erase(Str->begin() + Str->size() - 1);
-
     for( size_t i = Str->size() - 1; i >= 0 && isspace( (*Str)[i] ); --i)
         Str->erase( Str->begin() + i );
-
-//serious doubt! deleting commentaries at end of line
-    /*if( Str->rfind(";//") != string::npos )
-        Str->erase( Str->rfind(";//") + 1,  Str->size() - Str->rfind(";//") - 1);
-
-    if( Str->rfind("; //") != string::npos )
-        Str->erase( Str->rfind("; //") + 1,  Str->size() - Str->rfind("; //") - 1);
-
-    if( Str->rfind(")//") != string::npos )
-        Str->erase( Str->rfind(")//") + 1,  Str->size() - Str->rfind(")//") - 1);
-
-    if( Str->rfind(") //") != string::npos )
-        Str->erase( Str->rfind(") //") + 1,  Str->size() - Str->rfind(") //") - 1);
-
-    if( Str->rfind("{//") != string::npos )
-        Str->erase( Str->rfind("{//") + 1,  Str->size() - Str->rfind("{//") - 1);
-
-    if( Str->rfind("{ //") != string::npos )
-        Str->erase( Str->rfind("{ //") + 1,  Str->size() - Str->rfind("{ //") - 1);
-
-    if( Str->rfind("}//") != string::npos )
-        Str->erase( Str->rfind("}//") + 1,  Str->size() - Str->rfind("}//") - 1);
-
-    if( Str->rfind("} //") != string::npos )
-        Str->erase( Str->rfind("} //") + 1,  Str->size() - Str->rfind("} //") - 1);
-
-    if( Str->size() >= 2 && (*Str)[0] != '/')
-        if( Str->find("//") != string::npos )
-            Str->erase( Str->rfind("//") + 1,  Str->size() - Str->rfind("//") - 1 );*/
-
-    //deleting figure braces at the end and beginning of the string - they can be located at different lines, but fragment still can be clones
-    /*if((*Str)[Str->size() - 1] == '}')
-        Str->erase(Str->begin() + Str->size() - 1);
-
-    if( Str->size() >= 2 && (*Str)[Str->size() - 2] == ')' && (*Str)[Str->size() - 1] == '{' )
-        Str->erase(Str->begin() + Str->size() - 1);
-
-    if( Str->size() >= 1 && (*Str)[0] == '{' )
-        Str->erase(Str->begin() + Str->size() - 1);*/
 
     return;
 }
 
+//this function generates vector of all locations of Str_to_find in Source distance between which is Step or greater
 int find_locations(vector<size_t>* locations, string source, string str_to_find, size_t step)
 {
     if(source.find(str_to_find) != string::npos)
@@ -214,6 +175,7 @@ int find_locations(vector<size_t>* locations, string source, string str_to_find,
     return 0;
 }
 
+//this function generates vectors of IDs in lines of Text_out and vector of their corresponding locations in lines of Text_out
 int gen_id(vector<string> Text, vector<string>* Text_out, vector<vector<string>>* IDs, vector<vector<size_t>>* ID_locations, char showflag, ofstream& logfile)
 {
     for(size_t i = 0; i < Text.size(); ++i)
@@ -230,13 +192,16 @@ int gen_id(vector<string> Text, vector<string>* Text_out, vector<vector<string>>
         IDs->push_back(i_a_o);
 
         vector<size_t> locations_id_for_line;
-        find_locations(&locations_id_for_line, temp_str_out, "ID", 1);
+        find_locations(&locations_id_for_line, temp_str_out, "ID", 2);
         ID_locations->push_back(locations_id_for_line);
     }
 
     return 0;
 }
 
+//this function generates vector of pseudo-typedefs for Text according to vectors of ID locations and IDs themselves
+//pseudo-typedef is added if variable declaration uses obvious user defined types
+//pseudo-typedef is added if user defined type is used in type cast ~ (Type)...
 vector<string> gen_typedefs(vector<vector<size_t>> ID_locations, vector<vector<string>> IDs, vector<string>* Text_param)
 {
     vector<string> typedefs;
@@ -246,14 +211,24 @@ vector<string> gen_typedefs(vector<vector<size_t>> ID_locations, vector<vector<s
         typedefs.push_back("FAIL");
         return typedefs;
     }
-
+    //typedef in variable declaration ID[*...*]ID
     for(size_t i = 0; i < ID_locations.size(); ++i)
     {
         vector<size_t> line_id_locks = ID_locations[i];
 
         for(size_t j = 1; j < line_id_locks.size(); ++j)
         {
-            if(line_id_locks[j] == line_id_locks[j - 1] + 2)
+            //if IDID or ID*...*ID is found
+            size_t p = line_id_locks[j - 1] + 2;
+            if( p == 2)//meaning we're right in the beginning of the line
+            {
+                while( ((*Text_param)[i])[ p ] == '*' )
+                {
+                    ++p;
+                }
+            }
+
+            if(line_id_locks[j] == p)
             {
                 if( (IDs[i]).size() > 0 && j > 0 && typedefs.end() == find( typedefs.begin(), typedefs.end(), (IDs[i])[j - 1] ) )
                 {
@@ -262,6 +237,7 @@ vector<string> gen_typedefs(vector<vector<size_t>> ID_locations, vector<vector<s
             }
         }
 
+        //typedef in type cast ~ (Type)...
         string PFPF("CBP4_PARAMETERIZED_FUNCNAME_POSSIBLE_FUNCDEF");
 
         for(size_t j = 0; j < line_id_locks.size(); ++j)
@@ -292,6 +268,7 @@ vector<string> gen_typedefs(vector<vector<size_t>> ID_locations, vector<vector<s
     return typedefs;
 }
 
+//this function restores braces balance which is needed for preprocessing before comparison
 int braces_balance(vector<string>* v_Str)
 {
     int l_brace_counter = 0, r_brace_counter = 0;
@@ -339,10 +316,6 @@ int braces_balance(vector<string>* v_Str)
             }
         }
 
-        /*if(line[line.size() - 1] == '{')
-        {
-            ++l_brace_counter;
-        }*/
         j = 0;
         while( j < line.size() && line[j] == '{' )
         {
@@ -385,6 +358,7 @@ int braces_balance(vector<string>* v_Str)
     return 0;
 }
 
+//writes Text to file with path filename using ofstream
 int write_to_file(string filename, vector<string> text)
 {
     ofstream outfile;
@@ -404,17 +378,17 @@ int write_to_file(string filename, vector<string> text)
 
 }
 
-//this function is needed because when initializing compared can be a part of original
-int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fake_libc, char showflag, ofstream& logfile)// returns 1 if clones, 0 if not
+//this function prepares fragments for comparison by Python AST comparison module
+// returns 1 if clones, 0 if not
+int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fake_libc, char showflag, ofstream& logfile)
 {
-    //if original is bigger than compared than there's no comparison
-    //if original is smaller than compared but it's only one line - than there's no comparison
+    //if original is bigger than compared and compared size is 1 than there's no comparison and 0 is returned
     if( Original.fragment.size() != 1 && Compared.fragment.size() == 1 )
     {
-        //cout << Compared.fragment[0] << endl;
         return 0;
     }
 
+    //cuts bigger fragment so that fragments of equal size are compared
     Exemplar big = Original, small = Compared;
 
     int offset  = ((int)big.fragment.size() - (int)small.fragment.size()) / 2;
@@ -440,11 +414,11 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
         if(first[i] != second[i])
             break;
     }
-    //char b = 0;
+    //it means that two fragments are absolutely equal (as plain text) and no further comparison is needed
     if(i > 0 && i == first.size())
     {
         return 1;
-        //b = 1;
+
     }
 
     //generating versions of first and second where identificators have been changed for ID in text_out_i, stored in ID_i and their locations stored in ID_locs_i
@@ -455,7 +429,6 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
     {
         if(showflag == 1)
             logfile << "Gen ID failed." << endl;
-        //cout << "Gen ID failed with first!" << endl;
         return 0;
     }
 
@@ -466,27 +439,17 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
     {
         if(showflag == 1)
             logfile << "Gen ID failed." << endl;
-        //cout << "Gen ID failed with second!" << endl;
         return 0;
     }
 
     //generating lists of IDs that have to be described in typedefs
     std::vector<string> typedefs1 = gen_typedefs(ID_locs_1, ID_1, &Text_out_1), typedefs2 = gen_typedefs(ID_locs_2, ID_2, &Text_out_2);
 
-    /*if( b == 1)
-    {
-        for(size_t j = 0; j < first.size(); ++j)
-            cout << Text_out_1[j] << "_______________" << Text_out_2[j] << endl;
-    }*/
-
     //were unable to genereate typedefs
     if( ( typedefs1.size() > 0 && typedefs1[0] == "FAIL" ) || ( typedefs2.size() > 0 && typedefs2[0] == "FAIL" ) )
     {
-
-        //cout << "FAILED TO AT\n " << first[0] << endl << second[0] << endl;
         if(showflag == 1)
             logfile << "Could not create additional pseudo-typedefs." << endl;
-        //cout << "Gen typedefs failed!" << endl;
         return 0;
     }
 
@@ -523,20 +486,15 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
     second.insert(second.begin(), "#include <stdlib.h>");
     second.insert(second.begin(), "#include <stdio.h>");
 
+    //now preprocession and Python comparison
+
     string filename = "CPR4_GCC_PP_C99_AST_1.c";
 
     write_to_file(filename, first);
 
-    //cout << "equality?" << endl;
-
     filename = "CPR4_GCC_PP_C99_AST_2.c";
 
     write_to_file(filename, second);
-
-    //cout << "equality?" << endl;
-    //if( b == 1 || (i > 0 && i == first.size()) ){
-        //for(size_t j = 0; j < first.size(); ++j)
-           // cout << first[j] << "_______________" << second[j] << endl;}
 
     exec_git_command("gcc -w -E -I" + path_to_fake_libc + "fake_libc_include CPR4_GCC_PP_C99_AST_1.c -o out_CPR4_GCC_PP_C99_AST_1.c", showflag, logfile);
     exec_git_command("gcc -w -E -I" + path_to_fake_libc + "fake_libc_include CPR4_GCC_PP_C99_AST_2.c -o out_CPR4_GCC_PP_C99_AST_2.c", showflag, logfile);
@@ -547,15 +505,12 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
     remove( filename.c_str() );
 
     vector<string> result;
-    exec_command("python3 " + path_to_fake_libc + "testing_file.py out_CPR4_GCC_PP_C99_AST_1.c out_CPR4_GCC_PP_C99_AST_2.c", &result, showflag, logfile);
+    exec_command("python3 " + path_to_fake_libc + "compare_as_ast.py out_CPR4_GCC_PP_C99_AST_1.c out_CPR4_GCC_PP_C99_AST_2.c", &result, showflag, logfile);
 
     filename = "out_CPR4_GCC_PP_C99_AST_1.c";
     remove( filename.c_str() );
     filename = "out_CPR4_GCC_PP_C99_AST_2.c";
     remove( filename.c_str() );
-
-    //if(b == 1)
-        //cout << result.size() << endl << result[0] << endl;
 
     if(result.size() > 1)
     {
@@ -567,8 +522,6 @@ int Exemplars_Are_Equal(Exemplar Original, Exemplar Compared, string path_to_fak
 
     if( result.size() < 1 || result[0].size() < 1 || result[0][0] != '1')
         return 0;
-
-    //cout << result[0] << endl;
 
     return 1;
 }
@@ -586,8 +539,6 @@ int find_defects(string* path, vector<long long>* result, char showflag, ofstrea
             logfile << "FILE : CPR4_C99_cppcheck_output.txt COULD NOT BE OPENED. SKIPPING..." << std::endl;
     }
 
-    //vector<string> CppCheck_result;
-
     while(!cppcheck_out.eof())
     {
         std::string S_temp;
@@ -599,8 +550,6 @@ int find_defects(string* path, vector<long long>* result, char showflag, ofstrea
             string file = "./" + S_temp.substr(1, i_beg - 1);
             S_temp = S_temp.substr(i_beg + 1, i_end - i_beg - 1);
 
-            //cout << file << endl;
-            //cout << *path << endl;
             if( file != *path )
                 continue;
 
@@ -620,10 +569,7 @@ int find_defects(string* path, vector<long long>* result, char showflag, ofstrea
 int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string SHA1, size_t FragmentSize, string path_to_fake_libc, char showflag, ofstream& logfile)
 {
     for(size_t i = 0; i < Paths->size(); ++i)
-    {/*
-        FILE* in_file;
-        in_file = fopen((*Paths)[i].c_str(), "r");
-        if(in_file == NULL) return 1;*/
+    {
         ifstream in_file((*Paths)[i].c_str(), ios_base::in);
         if(!in_file.is_open())
         {
@@ -650,15 +596,11 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
 
         long long line = 0;//stores current number of line that was read
 
+        //this flag is needed to find multiline comments
         char multiline_comment = 0;
 
-        while(/*!feof(in_file)*/!in_file.eof() && defect_lines.size() > 0)
-        {/*
-            char str[256];
-            fscanf(in_file, "%[^\n]\n", str);
-
-            std::string S_temp(str);*/
-
+        while(!in_file.eof() && defect_lines.size() > 0)
+        {
             //this flag is used to skip parametrization
             char continue_flag = 0;
 
@@ -675,7 +617,6 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                 {
                     if( S_temp.size() >= 2 && S_temp[ S_temp.size() - 1 ] == '/' && S_temp[ S_temp.size() - 2 ] == '*' )
                     {
-                        //cout << "ASAS 1\n";
                         multiline_comment = 0;
                         continue;
                     }
@@ -708,7 +649,6 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                             {
                                 S_temp = last + S_temp;
                                 previous.pop_back();
-                                //previous.push_back(S_temp);
                                 continue_flag = 1;
                             }
                         }
@@ -744,16 +684,10 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                 && outstr.find("sizeof") != 0 && outstr.find("return") != 0 && outstr.find("switch") != 0 && outstr.find("while") != 0 && outstr.find("{") != 0
                 && outstr.find("case") != 0  && outstr[0] != '{' && outstr[0] != ';' && outstr[0] != '{' && outstr[0] != ';')
                 {
-                    //cout << "CLEAR!!!" << endl;
-                    //cout << S_temp << endl << outstr << endl;
                     previous.clear();//at this point we have some strings in PREVIOUS and we encountered a string that contains
                 }
                 else
                 {
-
-                    /*if( S_temp.find("//") != string::npos )
-                        cout << (*Paths)[i] << " : " << S_temp << " , " << S_temp[0] << endl;*/
-
                     //if current line is in defect lines we need to form a fragment
                     if( !in_file.eof() && defect_lines.end() != find(defect_lines.begin(), defect_lines.end(), line) )
                     {
@@ -762,9 +696,6 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
 
                         int j = 0, prev_size = previous.size();//prev_size - size of previous[] before adding string with weakness
                         //j counts number of lines that have been added to previous[]
-                        /*cout << "j 0 prev " << prev_size << endl;
-                        for(int qwe = 0; qwe < prev_size; ++qwe)
-                            cout << previous[qwe] << endl;*/
 
                         previous.push_back(S_temp);
 
@@ -772,11 +703,7 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                         while(unexpected_eof != 1 && j < prev_size && !in_file.eof())
                         {
                             continue_flag = 0;
-                            /*
-                                char str_t[256];
-                                fscanf(in_file, "%[^\n]\n", str_t);
 
-                                string S_temp_2(str_t);*/
                                 std::string S_temp2;
                                 std::getline(in_file, S_temp2);
                                 line++;
@@ -791,7 +718,6 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                     {
                                         if( S_temp2.size() >= 2 && S_temp2[ S_temp2.size() - 1 ] == '/' && S_temp2[ S_temp2.size() - 2 ] == '*' )
                                         {
-                                            //cout << "ASAS 2\n";
                                             multiline_comment = 0;
                                             continue;
                                         }
@@ -824,7 +750,6 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                                 {
                                                     S_temp2 = last + S_temp2;
                                                     previous.pop_back();
-                                                    //previous.push_back(S_temp2);
                                                     continue_flag = 1;
                                                     --j;
                                                 }
@@ -836,7 +761,6 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
 
                                     std::string outstr2;
                                     std::vector<string> temp2_unused;
-
 
                                     if(continue_flag == 0)
                                     {
@@ -858,8 +782,6 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                     && outstr2.find("switch") != 0 && outstr2.find("while") != 0 && outstr2.find("{") != 0 && outstr2.find("case") != 0
                                     && outstr2[0] != '{' && outstr2[0] != ';')
                                     {
-                                        //cout << "CLEAR!!!" << endl;
-                                        //cout << S_temp2 << endl << outstr2 << endl;
                                         //j is current number of added lines beyond prev_size + 1. if it's 0 it means that we havent added any yet
                                         //we have to leave only 2 * j + 1 lines in previous
                                         break;//while cycle is exited
@@ -891,10 +813,8 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                                     if(S_temp2.size() >= 2 && S_temp2[0] == '/' && S_temp2[1] == '*')
                                     {
                                         multiline_comment = 1;
-                                        //cout << "BBB" << endl;
                                     }
                                 }
-                            //j++;
                         }
 
                         if(j < prev_size)//at this moment j shows how many lines we were able to add
@@ -907,11 +827,6 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
 
                         if(previous.size() > FragmentSize)
                             previous.erase(previous.begin(), previous.begin() + previous.size() - FragmentSize);
-
-                        //cout << "LINE " << Exmplr.line << endl;
-                        //for(size_t o = 0; o < Exmplr.fragment.size(); ++o)
-                            //cout << Exmplr.fragment[o] << endl;
-                        //cout << "SIZE " << Exmplr.fragment.size() << endl;
 
                         //now we have fragment of code ready
                         if(Exmplr.fragment.size() != 0)//because empty weaknesses are useless
@@ -1047,12 +962,10 @@ int initialize_clusters(vector<string>* Paths, vector<Cluster>* clusters, string
                 if(S_temp.size() >= 2 && S_temp[0] == '/' && S_temp[1] == '*')
                 {
                     multiline_comment = 1;
-                    //cout << "AAA" << endl;
                 }
             }
         }
 
-        //fclose(in_file);
         in_file.close();
 
     }

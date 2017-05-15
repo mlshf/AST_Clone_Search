@@ -19,12 +19,15 @@
 
 using namespace std;
 
+//this structure is used to store IDs of versions we'll need to analyze
 struct Commit_Level
 {
     long long level;
     vector<string> SHA1_of_commits;
 };
 
+//finds out if vector contains String already
+//neded to fill commit levels
 int Are_There_Equal_Strings(vector<string>* VS, string S)
 {
     int Found_Equal = 0;
@@ -36,7 +39,7 @@ int Are_There_Equal_Strings(vector<string>* VS, string S)
     return Found_Equal;
 }
 
-//creates vector of levels of commits
+//creates vector of levels of commits - - what versions we need to check
 //level 0 - starting commit
 //level i+1 - level of commits-descendants of commits from level i
 int Fill_Commit_Levels(vector<Commit_Level>* Commit_Levels, vector<string>* Start_SHA1, char showflag, ofstream& logfile)
@@ -52,7 +55,6 @@ int Fill_Commit_Levels(vector<Commit_Level>* Commit_Levels, vector<string>* Star
     {
         Commit_Level Level_i;
         Level_i.level = i;
-        //cout << "Previous level size is: " << (*Commit_Levels)[i - 1].SHA1_of_commits.size() << endl;
 
         for(size_t j = 0; j < (*Commit_Levels)[i - 1].SHA1_of_commits.size(); ++j)
         {
@@ -74,7 +76,6 @@ int Fill_Commit_Levels(vector<Commit_Level>* Commit_Levels, vector<string>* Star
         Commit_Levels->push_back(Level_i);
         ++i;
         unchecked_commits = (int)Level_i.SHA1_of_commits.size();
-        //cout << "Current level size is: " << unchecked_commits << endl << endl;
 
     }
 
@@ -103,6 +104,10 @@ int Fill_Commit_Levels(vector<Commit_Level>* Commit_Levels, vector<string>* Star
     return 0;
 }
 
+//erases figure braces at the end and in the beginning of String
+//its needed to compare two fragments of size 1
+//because due to how fragments are formed
+//equal strings can differ in number of figure braces
 string erase_fbraces(string S)
 {
     while( S[0] == '{')
@@ -131,6 +136,9 @@ string erase_fbraces(string S)
     return S;
 }
 
+//finds indices of Clusters to which fragment, whose central line is S_compared, MAY BE equal
+//it's needed to narrow set of clusters fragment is compared to
+//and decide if such comparison is needed at all
 void Find_Indices_of_Clusters(string S_compared, vector<Cluster>* Clusters, vector<size_t>* Need_to_Compare, string path_to_fake_libc, char showflag, ofstream& logfile)//returns number of cluster that contains similar original string or -1 otherwise
 {
     S_compared = erase_fbraces(S_compared);
@@ -143,8 +151,7 @@ void Find_Indices_of_Clusters(string S_compared, vector<Cluster>* Clusters, vect
     for(size_t i = 0; i < Clusters->size(); ++i)
     {
         int j = (*Clusters)[i].commits[0].files[0].exemplars[0].fragment.size() / 2 ;//because size is always 2 * k + 1, middle string index is j
-        /*if(S_compared.compare( (*Clusters)[i].commits[0].files[0].exemplars[0].fragment[j] ) == 0)
-            Need_to_Compare->push_back(i);*/
+
         if( j < 0 )
             continue;
 
@@ -157,16 +164,15 @@ void Find_Indices_of_Clusters(string S_compared, vector<Cluster>* Clusters, vect
         Exemplar original;
         original.fragment = orig;
 
-        //cout << "OK ?" << endl;
-
         if(Exemplars_Are_Equal(original, compared, path_to_fake_libc, showflag, logfile) == 1)
             Need_to_Compare->push_back(i);
-
-        //cout << "OK !!!" << endl;
     }
     return;
 }
 
+//performs analysis of versions from Commit_Levels
+//finding clones of code of original fragments from Clusters, that by now have been initialized
+//and add fragment to corresponding cluster if its a clone of said cluster's original fragment
 int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Clusters, size_t FragmentSize, string path_to_fake_libc, char showflag, ofstream& logfile)
 {
     for(size_t i = 1; i < Commit_Levels->size(); ++i)
@@ -195,6 +201,7 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
 
                 long long line = 0;//stores current number of line that was read
 
+                //needed to find multiline comments
                 char multiline_comment = 0;
 
                 while(!in_file.eof())
@@ -216,7 +223,6 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                         {
                             if( S_temp.size() >= 2 && S_temp[ S_temp.size() - 1 ] == '/' && S_temp[ S_temp.size() - 2 ] == '*' )
                             {
-                                //cout << "ASAS 1\n";
                                 multiline_comment = 0;
                                 continue;
                             }
@@ -249,7 +255,6 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                     {
                                         S_temp = last + S_temp;
                                         previous.pop_back();
-                                        //previous.push_back(S_temp);
                                         continue_flag = 1;
                                     }
                                 }
@@ -290,10 +295,11 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                         }
                         else
                         {
-                            //cout << line << endl;
                             char post_read_flag = 0;
                             continue_flag = 0;
                             std::string S_temp2;
+                            //concept of an idea that didn't work out
+                            //better to save it for now
                             /*while(!in_file.eof())
                             {
                                 std::getline(in_file, S_temp2);
@@ -343,10 +349,6 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                             {
                                 Find_Indices_of_Clusters(S_temp, Clusters, &Need_to_Compare, path_to_fake_libc, showflag, logfile);
                             }
-                            /*for(size_t www = 0; www < Clusters->size(); ++www)
-                                Need_to_Compare.push_back(www);*/
-
-                            //cout << line << endl;
 
                             //if current line is in defect lines we need to form a fragment
                             if(!in_file.eof() && Need_to_Compare.size() > 0 )
@@ -357,12 +359,6 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                 int t = 0, prev_size = previous.size();//prev_size - size of previous[] before adding string with weakness
                                 //j counts number of lines that have been added to previous[]
                                 previous.push_back(S_temp);
-
-                                //cout << "LINE " << Exmplr.line << endl;
-                                //for(size_t ooo = 0; ooo < previous.size(); ++ooo)
-                                    //cout << previous[ooo] << endl;
-                                //cout << "t " << t << " P " << previous.size() << endl;
-                                //cout << endl;
 
                                 char unexpected_eof = 0;
                                 while(unexpected_eof != 1 && t < prev_size && !in_file.eof())
@@ -387,7 +383,6 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                         {
                                             if( S_temp2.size() >= 2 && S_temp2[ S_temp2.size() - 1 ] == '/' && S_temp2[ S_temp2.size() - 2 ] == '*' )
                                             {
-                                                //cout << "ASAS 2\n";
                                                 multiline_comment = 0;
                                                 continue;
                                             }
@@ -420,7 +415,6 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                                     {
                                                         S_temp2 = last + S_temp2;
                                                         previous.pop_back();
-                                                        //previous.push_back(S_temp2);
                                                         continue_flag = 1;
                                                         --t;
                                                     }
@@ -483,7 +477,6 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                             if(S_temp2.size() >= 2 && S_temp2[0] == '/' && S_temp2[1] == '*')
                                             {
                                                 multiline_comment = 1;
-                                                //cout << "BBB" << endl;
                                             }
                                         }
                                     }
@@ -496,34 +489,21 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                     previous.erase(previous.begin(), previous.begin() + prev_size - t);
                                 }
 
-                                //cout << Need_to_Compare.size() << endl << line << endl << previous.size() << endl;
-                                //for(size_t o = 0; o < previous.size(); ++o)
-                                    //cout << previous[o] << endl;
-
                                 //AT THIS POINT I HAVE A FRAGMENT OF SIZE 2*FragmentSize + 1 or less THAT CONTAINS WEAKNESS
                                 Exmplr.fragment = previous;
 
                                 if(previous.size() > FragmentSize)
                                     previous.erase(previous.begin(), previous.begin() + previous.size() - FragmentSize);
 
-                                //cout << "LINE " << Exmplr.line << endl;
-                                //for(size_t ooo = 0; ooo < Exmplr.fragment.size(); ++ooo)
-                                    //cout << Exmplr.fragment[ooo] << endl;
-                                //cout << "t " << t << " P " << previous.size() << " SIZE " << Exmplr.fragment.size() << endl;
-                                //cout << endl;
-
-
                                 //now we have fragment of code ready
                                 if(Exmplr.fragment.size() != 0)//because empty weaknesses are useless
                                 {
                                     size_t ix = 0;
                                     int Found_Equal = 0;
-                                    //cout << Need_to_Compare.size() << endl << Clusters->size() << endl;
                                     while( ix < Need_to_Compare.size() && Found_Equal != 1 )
                                     {
-                                        //cout << (*Clusters)[ Need_to_Compare[ix] ].commits[0].files[0].exemplars[0].fragment[0] << endl;
                                         Found_Equal = Exemplars_Are_Equal( (*Clusters)[ Need_to_Compare[ix] ].commits[0].files[0].exemplars[0], Exmplr, path_to_fake_libc, showflag, logfile );
-                                        //cout << Found_Equal << endl;
+
                                         if(Found_Equal != 1)
                                         {
                                             ++ix;//so that at the end we will have either ix = clusters.size() => no equal exemplars were found
@@ -531,15 +511,9 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                         }
                                     }
 
-                                    //cout << Found_Equal << endl;
-
                                     if(Found_Equal == 1)
                                         ix = Need_to_Compare[ix];
                                     //now ix contains not index of element of Need_to_Compare that contains index of needed cluster, but index of needed cluster
-
-                                    //for(size_t ooo = 0; ooo < Exmplr.fragment.size(); ++ooo)
-                                        //cout << Exmplr.fragment[ooo] << endl;
-                                    //cout << endl;
 
                                     if(Found_Equal == 1)//we have found equal exemplar
                                     {
@@ -548,8 +522,6 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                         if(index_of_last_commit > 0)
                                             index_of_last_commit--;
 
-                                        //cout << ix << " " << (*Clusters).size() << " " << index_of_last_commit << " " << (*Clusters)[ix].commits.size() << " ";
-                                        //cout << i << " " << (*Commit_Levels).size() << " " << j << " " << (*Commit_Levels)[i].SHA1_of_commits.size() << endl;
                                         if( (size_t)index_of_last_commit < (*Clusters)[ix].commits.size()
                                         && (*Clusters)[ix].commits[ index_of_last_commit ].SHA1.compare( (*Commit_Levels)[i].SHA1_of_commits[j] ) == 0 )
                                             Commit_Exists = 1;
@@ -571,8 +543,9 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                                             if( (*Clusters)[ix].commits[ index_of_last_commit ].files[jx].FilePath.compare( Paths[k] ) == 0)//if there is a FilePath that is equal to current Path
                                                 Found_Path = 1;
 
-                                            if(Found_Path != 1) jx++;//so that at the end jx will be either size() => no equal paths were found
-                                            //or it'll be index of file, that contains another weakness of current type
+                                            if(Found_Path != 1)
+                                                jx++;//so that at the end jx will be either size() => no equal paths were found
+                                                        //or it'll be index of file, that contains another weakness of current type
                                         }
 
                                         if(Found_Path == 1)
@@ -618,13 +591,12 @@ int Analyze_History(vector<Commit_Level>* Commit_Levels, vector<Cluster>* Cluste
                             {
                                 if(showflag == 1)
                                     logfile << "Unexpected end of file " << Paths[k] << endl;
-                                break;//return 1;
+                                break;
                             }
 
                             if(S_temp.size() >= 2 && S_temp[0] == '/' && S_temp[1] == '*')
                             {
                                 multiline_comment = 1;
-                                //cout << "AAA" << endl;
                             }
                         }
                     }

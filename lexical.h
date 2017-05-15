@@ -12,8 +12,9 @@
 
 using namespace std;
 
-int What_Keyword(string str, string* output, vector<string>* id_and_num)//function finds out what token str contains and if it's number or identificator
-//then changes it to P - for parameter and stores information about encountered IDs and constants real "names"
+//function finds out what token str contains and if it's an ID
+int What_Keyword(string str, string* output, vector<string>* id_and_num)
+//then changes it to ID - for parameter and stores information about encountered IDs and constants real "names"
 {
 
     vector<string> keywords {"auto","break","case","char","const","continue","default",
@@ -26,7 +27,6 @@ int What_Keyword(string str, string* output, vector<string>* id_and_num)//functi
     {
         if(str.compare(keywords[i]) == 0)
         {
-            //cout << str << " is a C keyword" << endl;
 
             *output += str + " ";
 
@@ -43,7 +43,6 @@ int What_Keyword(string str, string* output, vector<string>* id_and_num)//functi
                         return 1;
                     }
                 }
-                //cout << str << " is a number" << endl;
 
                 *output += str + " ";//for constant
 
@@ -62,7 +61,6 @@ int What_Keyword(string str, string* output, vector<string>* id_and_num)//functi
                         return 1;
                     }
                 }
-                //cout << str << " is an identifier" << endl;
 
                 *output += "ID";//for identifier
                 id_and_num->push_back(str);
@@ -107,8 +105,6 @@ int Parametrization(string in_str, string* output, vector<string>* id_and_num, c
             if( ch == '/' && i < in_str.size() && in_str[i] == '/' )
                 break;
 
-            //cout << ch << " is an operator" << endl;
-
             string temp(1, ch);
             *output += temp;
 
@@ -143,10 +139,6 @@ int Parametrization(string in_str, string* output, vector<string>* id_and_num, c
                         }
                     }
 
-                    //if(str_temp[str_temp.size() - 1] == '\n' && str_temp.size() != 0)
-                        //str_temp.erase(str_temp.end() - 1);
-                    //cout << str_temp << " is something with # at the beginning" << endl;
-
                     *output += str_temp;
 
                     str_temp.clear();
@@ -170,8 +162,6 @@ int Parametrization(string in_str, string* output, vector<string>* id_and_num, c
 
                         }while(i <= in_str.size() && ch != '"');
 
-                        //cout << str_temp << " is a constant string" << endl;
-
                         *output += str_temp;
 
                         str_temp.clear();
@@ -194,8 +184,6 @@ int Parametrization(string in_str, string* output, vector<string>* id_and_num, c
 
                             }while(i <= in_str.size() && ch != '\'');
 
-                            //cout << str_temp << " is a character" << endl;
-
                             *output += str_temp;
 
                             str_temp.clear();
@@ -213,7 +201,6 @@ int Parametrization(string in_str, string* output, vector<string>* id_and_num, c
 
                                 if(ch == '(')//found a function call or definition
                                 {
-                                    //cout << str_temp << " is a function" << endl;
                                     if( output->size() > 0 && operators.find( (*output)[output->size() - 1] ) == string::npos )
                                     {
                                         *output += "CBP4_PARAMETERIZED_FUNCNAME_POSSIBLE_FUNCDEF";
@@ -232,7 +219,6 @@ int Parametrization(string in_str, string* output, vector<string>* id_and_num, c
                                 {
                                     if(ch == '{')//found a structure or union or compound operator
                                     {
-                                        //cout << str_temp << " is a structure" << endl;
 
                                         *output += str_temp;
 
@@ -269,7 +255,6 @@ int Parametrization(string in_str, string* output, vector<string>* id_and_num, c
                                                 str_temp.clear();
                                             }
                                         }
-                                        //cout << ch << " is an operator" << endl;
 
                                         string temp(1, ch);
                                         *output += temp;

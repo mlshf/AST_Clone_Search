@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="AST_Clone_Search" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/AST_Clone_Search" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-std=c++11" />
+					<Add option="-g" />
+					<Add option="-DBOOST_SYSTEM_NO_DEPRECATED" />
+				</Compiler>
+				<Linker>
+					<Add option="-lboost_system" />
+					<Add option="-lboost_filesystem" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/AST_Clone_Search" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-std=c++11" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="-lboost_system" />
+					<Add option="-lboost_filesystem" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+		</Compiler>
+		<Unit filename="cluster.h">
+			<Option compile="1" />
+		</Unit>
+		<Unit filename="cluster_init.h">
+			<Option compile="1" />
+		</Unit>
+		<Unit filename="git_exec.h">
+			<Option compile="1" />
+		</Unit>
+		<Unit filename="history_analysis.h">
+			<Option compile="1" />
+		</Unit>
+		<Unit filename="lexical.h">
+			<Option compile="1" />
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="main.cpp" />
+		<Unit filename="output.h">
+			<Option compile="1" />
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

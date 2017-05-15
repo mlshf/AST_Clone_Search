@@ -13,10 +13,10 @@
 
 using namespace std;
 
-int exec_git_command(string S, char showflag, ofstream& logfile)//It just executes command and prints the result
+//this function just executes command and prints the result
+int exec_git_command(string S, char showflag, ofstream& logfile)
 {
     FILE* in;
-    //char buff[512];
 
     if( showflag == 1 )
         logfile << S << endl << endl;
@@ -48,10 +48,10 @@ int exec_git_command(string S, char showflag, ofstream& logfile)//It just execut
     return 0;
 }
 
+//this function just executes command and returns the result
 int exec_command(string command, vector<string>* result, char showflag, ofstream& logfile)
 {
     FILE* in;
-    //char buff[512];
 
     if(showflag == 1)
         logfile << command << endl << endl;
@@ -83,7 +83,8 @@ int exec_command(string command, vector<string>* result, char showflag, ofstream
     return 0;
 }
 
-int Is_Char_String_Not_Empty(char S_temp[])//1 - does contain non-space characters, 0 otherwise
+//1 - does contain non-space characters, 0 otherwise
+int Is_Char_String_Not_Empty(char S_temp[])
 {
     int String_Not_Empty = 0;
     for(size_t t = 0; t < strlen(S_temp) && String_Not_Empty != 1; ++t)
@@ -95,7 +96,8 @@ int Is_Char_String_Not_Empty(char S_temp[])//1 - does contain non-space characte
     return String_Not_Empty;
 }
 
-int exec_git_getsha1(string S, vector<string>* VS, char showflag, ofstream& logfile)//It executes command and reads the result. Then prints it.
+//this function executes command and reads the result. Then prints it.
+int exec_git_getsha1(string S, vector<string>* VS, char showflag, ofstream& logfile)
 //Accepts string S - SHA1 of the commit, whose descendant commits we look for
 //VS contains the list of descendant commits of commit with SHA1 ~ S
 {

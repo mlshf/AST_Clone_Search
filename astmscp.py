@@ -405,8 +405,8 @@ def ast_compound(Compound, parent_node, prev_node):
                 ast_value(Line.stmt, n)
             elif not "None" in str(Line.stmt):
                 ast_compound([Line.stmt], n, n)
-        elif "EmptyStatement" in str(Line):
-            n = Node("Empty Statement;", parent = parent_node)
+        #elif "EmptyStatement" in str(Line):
+            #n = Node("Empty Statement;", parent = parent_node)
     #this is needed so that if instruction is different from compared one only in having label before it
     #distance would increase only by 1
     if (prev_node.name == ";") or (prev_node.name == "Compound"):

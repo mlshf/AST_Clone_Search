@@ -27,7 +27,7 @@ LIB_DEBUG = $(LIB)
 LDFLAGS_DEBUG = $(LDFLAGS) -lboost_system -lboost_filesystem
 OBJDIR_DEBUG = obj/Debug
 DEP_DEBUG = 
-OUT_DEBUG = bin/Debug/Course_Realization
+OUT_DEBUG = bin/Debug/AST_Clone_Search
 
 INC_RELEASE = $(INC)
 CFLAGS_RELEASE = $(CFLAGS) -O2 -std=c++11
@@ -38,7 +38,7 @@ LIB_RELEASE = $(LIB)
 LDFLAGS_RELEASE = $(LDFLAGS) -s -lboost_system -lboost_filesystem
 OBJDIR_RELEASE = obj/Release
 DEP_RELEASE = 
-OUT_RELEASE = bin/Release/Course_Realization
+OUT_RELEASE = bin/Release/AST_Clone_Search
 
 OBJ_DEBUG = $(OBJDIR_DEBUG)/main.o
 

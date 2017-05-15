@@ -47,17 +47,6 @@ int Get_Start_SHA1(const char* filename, vector<string>* Start_SHA1, char showfl
 //this function launches clones finding process
 int main_module(int argc, char* argv[], char showflag, ofstream& logfile)
 {
-    /*ofstream logfile;
-    if( showflag == 1 )
-    {
-        logfile.open( log_file.c_str(), ofstream::out | ofstream::app );
-        if( !logfile.is_open() )
-        {
-            cout << "Failed to open log file:" + log_file + "\nAborting..." << endl;
-            return 1;
-        }
-    }*/
-
     //FRAGMENT SIZE - size of context when reading source code
     stringstream S_FragmentSize(argv[2]);//turn FragmentSize char[] -> size_t
     int C;
@@ -79,14 +68,13 @@ int main_module(int argc, char* argv[], char showflag, ofstream& logfile)
 
     //PATH_TO_EXE - path to program executable, where also fake_libc_include and python scripts should be located
     string path_to_exe(argv[0]);
-    string key("Course_Realization");
+    string key("AST_Clone_Search");
     size_t pos = path_to_exe.rfind( key );
     if( pos != std::string::npos )
         path_to_exe.erase( path_to_exe.begin() + pos, path_to_exe.end() );
 
 
     cout << endl << "#GETTING INITIAL DATA..." << endl << endl;
-    //string S1("git rev-list --min-parents=0 HEAD");
 
     //reading init versions identificators (SHA-1) from file in argv[1]
     vector<string> Start_SHA1;
@@ -314,7 +302,7 @@ int main(int argc, char* argv[])
         else
         {
             cout << "Exactly three parameters are needed - file with SHA1 hashes of starting commits, fragment size and path to output file that describes cluster without extension." << endl;
-            cout << "For example: ../Course_Realization/bin/Debug/Course_Realization '../sha1.txt' 3 '../output'" << endl;;
+            cout << "For example: ../AST_Clone_Search/bin/Release/AST_Clone_Search '../sha1.txt' 3 '../output'" << endl;;
         }
     }
 

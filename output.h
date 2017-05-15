@@ -32,8 +32,6 @@ int Output_Of_Result(vector<Cluster>* Clusters, string BaseName, char showflag, 
             return 1;
         }
 
-        //cout << "1_" << i << endl;
-
         output_file << "digraph Cluster" << endl << "{" << endl;
 
             output_file << "subgraph Commits" << endl << "{" << endl;
@@ -54,17 +52,10 @@ int Output_Of_Result(vector<Cluster>* Clusters, string BaseName, char showflag, 
                     Commit_j += converter.str() + " | SHA1 : \\n ";
                     Commit_j += (*Clusters)[i].commits[j].SHA1;
 
-                    //cout << "OK ?" << i << endl;
-
                     if(j == 0)
                     {
                         Commit_j += " | Original : \\n ";
-                        /*for(size_t k = 0; k < (*Clusters)[i].commits[0].files[0].exemplars[0].fragment.size(); ++k)
-                        {
-                            Commit_j += (*Clusters)[i].commits[0].files[0].exemplars[0].fragment[k];
-                            if(k < (*Clusters)[i].commits[0].files[0].exemplars[0].fragment.size() - 1)
-                                Commit_j += " \\n ";
-                        }*/
+
                         Commit_j += "File : ";
                         converter.clear();
                         converter.str(string());
@@ -83,8 +74,6 @@ int Output_Of_Result(vector<Cluster>* Clusters, string BaseName, char showflag, 
                         Commit_j += converter.str();
 
                     }
-
-                    //cout << "OK !" << i << endl;
 
                     Commit_j += "}\"];";
 
@@ -164,18 +153,20 @@ int Output_Of_Result(vector<Cluster>* Clusters, string BaseName, char showflag, 
 
         output_file.close();
 
-        /*string Command = "dot -Tpng ";//example1.txt -o example1.png
+        string Command = "dot -Tpng ";//example1.txt -o example1.png
         converter.clear();
         converter.str(string());
         converter << i + 1;
 
         Command += BaseName + "_" + converter.str() + ".gv -o " + BaseName + "_" + converter.str() + ".png";
         if(exec_git_command(Command, showflag, logfile) == 1)
-            return 1;*/
+            return 1;
 
     }
 
-    cout << endl << counter << endl << endl;
+    //prints number of found clones
+    if(showflag == 1)
+        logfile << endl << "Clones found in total: " << counter << endl << endl;
 
     return 0;
 }
